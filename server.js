@@ -86,7 +86,17 @@ module.exports = Class.create({
 		// become a daemon unless in debug mode
 		if (!this.debug) {
 			require('daemon')();
-		}
+			
+			// log crashes before exiting
+			process.on('uncaughtException', function(err) {
+				fs.appendFileSync( path.join(self.config.get('log_dir'), 'crash.log'),
+					(new Date()).toString() + "\n" + 
+					// 'Uncaught exception: ' + err + "\n\n" + 
+					err.stack + "\n\n"
+				);
+				process.exit(1);
+			});
+		} // not in debug mode
 		
 		// write pid file
 		if (this.config.get('pid_file')) {
