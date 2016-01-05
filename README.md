@@ -254,6 +254,7 @@ Here are the global configuration keys:
 |------------|---------------|-------------|
 | `debug` | `false` | When set to `true`, will run directly on the console without forking a daemon process. |
 | `echo` | `false` | When set to `true` and combined with `debug`, will echo all log output to the console. |
+| `color` | `false` | When set to `true` and combined with `echo`, all log columns will be colored in the console. |
 | `log_dir` | "." | Directory path where event log will be stored. |
 | `log_filename` | "event.log" | Event log filename, joined with `log_dir`. |
 | `log_columns` | [Array] | Custom event log columns, if desired (see [Logging](#logging) below). |

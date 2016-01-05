@@ -71,6 +71,7 @@ module.exports = Class.create({
 		
 		this.debug = this.config.get('debug') || false;
 		this.echo = this.config.get('echo') || false;
+		this.color = this.config.get('color') || false;
 		
 		// create base log dir
 		if (this.config.get('log_dir')) {
@@ -134,7 +135,7 @@ module.exports = Class.create({
 		this.logger = new Logger(
 			path.join( (this.config.get('log_dir') || '.'), (this.config.get('log_filename') || 'event.log') ),
 			this.config.get('log_columns') || ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data'],
-			{ hostname: this.hostname, ip: this.ip, echo: this.echo }
+			{ hostname: this.hostname, ip: this.ip, echo: this.echo, color: this.color }
 		);
 		this.logger.set( 'debugLevel', this.config.get('debug_level') || 1 );
 		
