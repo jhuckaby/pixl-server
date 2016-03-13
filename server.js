@@ -86,6 +86,12 @@ module.exports = Class.create({
 		
 		// become a daemon unless in debug mode
 		if (!this.debug) {
+			// pass --expose_gc down to daemon process if enabled
+			if (!process.env.__daemon && global.gc) {
+				process.argv.splice( 1, 0, '--expose_gc', '--always_compact' );
+			}
+			
+			// respawn as daemon or continue if we are already one
 			require('daemon')();
 			
 			// log crashes before exiting
