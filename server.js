@@ -88,7 +88,10 @@ module.exports = Class.create({
 		if (!this.debug) {
 			// pass --expose_gc down to daemon process if enabled
 			if (!process.env.__daemon && global.gc) {
-				process.argv.splice( 1, 0, '--expose_gc', '--always_compact' );
+				var cli_args = this.config.get('gc_cli_args') || ['--expose_gc', '--always_compact'];
+				cli_args.reverse().forEach( function(arg) {
+					process.argv.splice( 1, 0, arg );
+				} );
 			}
 			
 			// respawn as daemon or continue if we are already one
