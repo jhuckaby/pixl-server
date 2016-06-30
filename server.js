@@ -98,14 +98,16 @@ module.exports = Class.create({
 			require('daemon')();
 			
 			// log crashes before exiting
-			process.on('uncaughtException', function(err) {
-				fs.appendFileSync( path.join(self.config.get('log_dir'), 'crash.log'),
-					(new Date()).toString() + "\n" + 
-					// 'Uncaught exception: ' + err + "\n\n" + 
-					err.stack + "\n\n"
-				);
-				process.exit(1);
-			});
+			if (this.config.get('log_crashes')) {
+				process.on('uncaughtException', function(err) {
+					fs.appendFileSync( path.join(self.config.get('log_dir'), 'crash.log'),
+						(new Date()).toString() + "\n" + 
+						// 'Uncaught exception: ' + err + "\n\n" + 
+						err.stack + "\n\n"
+					);
+					process.exit(1);
+				});
+			}
 		} // not in debug mode
 		
 		// write pid file
