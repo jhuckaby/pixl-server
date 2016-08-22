@@ -258,6 +258,7 @@ Here are the global configuration keys:
 | `log_dir` | "." | Directory path where event log will be stored. |
 | `log_filename` | "event.log" | Event log filename, joined with `log_dir`. |
 | `log_columns` | [Array] | Custom event log columns, if desired (see [Logging](#logging) below). |
+| `log_crashes` | `false` | When set to `true`, will log all unhandled exceptions to a `crash.log` file in the `log_dir` dir. |
 | `uid` | `null` | If set and running as root, forked daemon process will attempt to switch to the specified user (numerical ID or a username string). |
 | `debug_level` | `1` | Debug logging level, larger numbers are more verbose, 1 is quietest, 10 is loudest. |
 
