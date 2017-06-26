@@ -40,6 +40,11 @@ module.exports = Class.create({
 		}
 	},
 	
+	earlyStart: function() {
+		// override in subclass, return false to interrupt startup
+		return true;
+	},
+	
 	startup: function(callback) {
 		// override in subclass
 		callback();

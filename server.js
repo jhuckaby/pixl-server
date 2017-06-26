@@ -4,6 +4,7 @@
 
 var path = require('path');
 var fs = require('fs');
+var os = require('os');
 var async = require('async');
 var mkdirp = require('mkdirp');
 
@@ -84,6 +85,24 @@ module.exports = Class.create({
 			}
 		} // log_dir
 		
+		// setup log agent
+		this.logger = new Logger(
+			path.join( (this.config.get('log_dir') || '.'), (this.config.get('log_filename') || 'event.log') ),
+			this.config.get('log_columns') || ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data'],
+			{ echo: this.echo, color: this.color, hostname: os.hostname() }
+		);
+		this.logger.set( 'debugLevel', this.config.get('debug_level') || 1 );
+		this.logDebug(1, this.__name + " v" + this.__version + " Starting Up");
+		
+		// if echoing log, capture stdout errors in case user pipes us to something then hits ctrl-c
+		if (this.echo) process.stdout.on('error', function() {});
+		
+		// init components
+		this.initComponents();
+		
+		// allow components to hook post init and possibly interrupt startup
+		if (!this.earlyStartComponents()) return;
+		
 		// become a daemon unless in debug mode
 		if (!this.debug) {
 			// pass --expose_gc down to daemon process if enabled
@@ -143,14 +162,8 @@ module.exports = Class.create({
 		// finish startup sequence
 		var self = this;
 		
-		this.logger = new Logger(
-			path.join( (this.config.get('log_dir') || '.'), (this.config.get('log_filename') || 'event.log') ),
-			this.config.get('log_columns') || ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data'],
-			{ hostname: this.hostname, ip: this.ip, echo: this.echo, color: this.color }
-		);
-		this.logger.set( 'debugLevel', this.config.get('debug_level') || 1 );
-		
-		this.logDebug(1, this.__name + " v" + this.__version + " Starting Up");
+		// finish log setup
+		this.logger.set({ hostname: this.hostname, ip: this.ip });
 		
 		// this may contain secrets, so only logging it at level 10
 		this.logDebug(10, "Configuration", this.config.get());
@@ -175,9 +188,6 @@ module.exports = Class.create({
 		this.config.on('error', function(err) {
 			self.logDebug(2, "Config reload error:" + err);
 		} );
-		
-		// init components
-		this.initComponents();
 		
 		// notify listeners we are starting components
 		this.emit('prestart');
@@ -205,6 +215,16 @@ module.exports = Class.create({
 		for (var idx = 0, len = this.components.length; idx < len; idx++) {
 			this.components[idx].init( this );
 		}
+	},
+	
+	earlyStartComponents: function() {
+		// allow components to perform early startup functions
+		// return false to abort startup (allows component to take over before daemon fork)
+		for (var idx = 0, len = this.components.length; idx < len; idx++) {
+			var result = this.components[idx].earlyStart();
+			if (result === false) return false;
+		}
+		return true;
 	},
 	
 	run: function(callback) {
@@ -252,6 +272,7 @@ module.exports = Class.create({
 	shutdown: function(callback) {
 		// shutdown all components
 		var self = this;
+		this.logger.set('sync', true);
 		
 		// delete pid file
 		if (this.config.get('pid_file')) {
@@ -271,6 +292,12 @@ module.exports = Class.create({
 		if (this.tickTimer) {
 			clearTimeout( this.tickTimer );
 			delete this.tickTimer;
+		}
+		
+		// if startup was interrupted, exit immediately
+		if (!this.started) {
+			self.logError(1, "Startup process was interrupted, exiting");
+			process.exit(1);
 		}
 		
 		// stop components
