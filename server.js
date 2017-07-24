@@ -296,7 +296,8 @@ module.exports = Class.create({
 		
 		// if startup was interrupted, exit immediately
 		if (!this.started) {
-			self.logError(1, "Startup process was interrupted, exiting");
+			this.logError(1, "Startup process was interrupted, exiting");
+			this.emit('shutdown');
 			process.exit(1);
 		}
 		
