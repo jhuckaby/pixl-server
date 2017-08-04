@@ -118,13 +118,12 @@ module.exports = Class.create({
 			
 			// log crashes before exiting
 			if (this.config.get('log_crashes')) {
-				process.on('uncaughtException', function(err) {
+				require('uncatch').on('uncaughtException', function(err) {
 					fs.appendFileSync( path.join(self.config.get('log_dir'), 'crash.log'),
 						(new Date()).toString() + "\n" + 
-						// 'Uncaught exception: ' + err + "\n\n" + 
 						err.stack + "\n\n"
 					);
-					process.exit(1);
+					// do not call exit here, as uncatch handles that
 				});
 			}
 		} // not in debug mode

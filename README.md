@@ -264,7 +264,7 @@ Here are the global configuration keys:
 | `log_dir` | "." | Directory path where event log will be stored. |
 | `log_filename` | "event.log" | Event log filename, joined with `log_dir`. |
 | `log_columns` | [Array] | Custom event log columns, if desired (see [Logging](#logging) below). |
-| `log_crashes` | `false` | When set to `true`, will log all unhandled exceptions to a `crash.log` file in the `log_dir` dir. |
+| `log_crashes` | `false` | When set to `true`, will log all uncaught exceptions to a `crash.log` file in the `log_dir` dir. |
 | `uid` | `null` | If set and running as root, forked daemon process will attempt to switch to the specified user (numerical ID or a username string). |
 | `debug_level` | `1` | Debug logging level, larger numbers are more verbose, 1 is quietest, 10 is loudest. |
 
@@ -347,7 +347,7 @@ server.logger.print({
 
 The server and component classes have a utility method named `debugLevel()`, which accepts a log level integer, and will return `true` if the current debug log level is high enough to emit something at the specified level, or `false` if it would be silenced.
 
-## Component Development
+# Component Development
 
 To develop your own component, create a class that inherits from the `pixl-server/component` base class.  It is recommended you use the [pixl-class](https://www.npmjs.com/package/pixl-class) module for this.  Set your `__name` property to a unique, alphanumeric name, which will be your Component ID.  This is how other components can reference yours from the `server` object, and this is the key used for your component's configuration as well.
 
@@ -422,7 +422,7 @@ module.exports = Class.create({
 });
 ```
 
-### Startup and Shutdown
+## Startup and Shutdown
 
 Your component should at least provide `startup()` and `shutdown()` methods.  These are both async methods, which should invoke the provided callback function when they are complete.  Example:
 
@@ -442,7 +442,7 @@ Your component should at least provide `startup()` and `shutdown()` methods.  Th
 
 As with all Node.js callbacks, if something goes wrong and you want to abort the startup or shutdown routines, pass an `Error` object to the callback method.
 
-### Accessing Your Configuration
+## Accessing Your Configuration
 
 Your configuration object is always accessible via `this.config`.  Note that this is an instance of [pixl-config](https://www.npmjs.com/package/pixl-config), so you need to call `get()` on it to fetch individual configuration keys, or you can fetch the entire object by calling it without an argument:
 
@@ -462,7 +462,7 @@ Your configuration object is always accessible via `this.config`.  Note that thi
 
 If the server configuration is live-reloaded due to a changed file, your component's `config` object will emit a `reload` event, which you can listen for.
 
-### Accessing The Root Server
+## Accessing The Root Server
 
 Your component can always access the root server object via `this.server`.  Example:
 
@@ -479,7 +479,7 @@ Your component can always access the root server object via `this.server`.  Exam
 }
 ```
 
-### Accessing Other Components
+## Accessing Other Components
 
 Other components are accessible via `this.server.COMPONENT_NAME`.  Please be aware of the component load order, as components listed below yours in the server `components` array won't be fully loaded when your `startup()` method is called.  Example:
 
@@ -503,7 +503,7 @@ Other components are accessible via `this.server.COMPONENT_NAME`.  Please be awa
 }
 ```
 
-### Accessing The Server Log
+## Accessing The Server Log
 
 Your component's base class has convenience methods for logging debug messages, errors and transactions via the `logDebug()`, `logError()` and `logTransaction()` methods, respectively.  These log messages will all be tagged with your component name, to differentiate them from other components and generic server messages.  Example:
 
@@ -523,6 +523,21 @@ this.logger.print({
 	data: { text: "Will be serialized to JSON" } 
 });
 ```
+
+# Uncaught Exceptions
+
+When the `log_crashes` feature is enabled, the [uncatch](https://www.npmjs.com/package/uncatch) module is used to manage uncaught exceptions.  The server registers a listener to log crashes, but you can also add your own listener to perform emergency shutdown procedures in the event of a crash (uncaught exception).
+
+The idea with [uncatch](https://www.npmjs.com/package/uncatch) is that multiple modules can all register listeners, and that includes your application code.  Example:
+
+```js
+require('uncatch').on('uncaughtException', function(err) {
+	// run your own sync shutdown code here
+	// do not call process.exit
+});
+```
+
+On an uncaught exception, this code would run *in addition to* the server logging the exception to the crash log.  Uncatch then emits the error and stack trace to STDERR and calls `process.exit(1)` after all listeners have executed.
 
 # License
 
