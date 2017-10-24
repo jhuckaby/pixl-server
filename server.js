@@ -12,6 +12,7 @@ var Class  = require("pixl-class");
 var Logger = require("pixl-logger");
 var Config = require("pixl-config");
 var Tools  = require("pixl-tools");
+var Args   = require("pixl-args");
 
 module.exports = Class.create({
 	
@@ -59,6 +60,11 @@ module.exports = Class.create({
 	__init: function(callback) {
 		// server initialization, private method (call startup() instead)
 		var self = this;
+		
+		// allow CLI to override configFile
+		var args = new Args();
+		if (args.get('configFile')) this.configFile = args.get('configFile');
+		else if (args.get('config')) this.configFile = args.get('config');
 		
 		// parse config file and cli args
 		this.config = new Config( this.configFile || this.config, false );
