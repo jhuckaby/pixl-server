@@ -120,7 +120,9 @@ module.exports = Class.create({
 			}
 			
 			// respawn as daemon or continue if we are already one
-			require('daemon')();
+			require('daemon')({
+				cwd: process.cwd() // workaround for https://github.com/indexzero/daemon.node/issues/41
+			});
 			
 			// log crashes before exiting
 			if (this.config.get('log_crashes')) {
