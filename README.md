@@ -543,7 +543,7 @@ On an uncaught exception, this code would run *in addition to* the server loggin
 
 The MIT License (MIT)
 
-Copyright (c) 2015 - 2017 Joseph Huckaby.
+Copyright (c) 2015 - 2018 Joseph Huckaby.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

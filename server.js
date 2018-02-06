@@ -67,7 +67,7 @@ module.exports = Class.create({
 		else if (args.get('config')) this.configFile = args.get('config');
 		
 		// parse config file and cli args
-		this.config = new Config( this.configFile || this.config, false );
+		this.config = new Config( this.configFile || this.config, true );
 		
 		// allow class to override config
 		if (this.configOverrides) {
@@ -190,10 +190,9 @@ module.exports = Class.create({
 		// monitor config changes
 		this.config.on('reload', function() {
 			self.logDebug(2, "Configuration was reloaded", self.config.get());
-			self.initComponents();
 		} );
 		this.config.on('error', function(err) {
-			self.logDebug(2, "Config reload error:" + err);
+			self.logDebug(1, "Config reload error:" + err);
 		} );
 		
 		// notify listeners we are starting components
@@ -300,6 +299,9 @@ module.exports = Class.create({
 			clearTimeout( this.tickTimer );
 			delete this.tickTimer;
 		}
+		
+		// stop config monitor
+		this.config.stop();
 		
 		// if startup was interrupted, exit immediately
 		if (!this.started) {
