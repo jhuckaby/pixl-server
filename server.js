@@ -115,6 +115,8 @@ module.exports = Class.create({
 			if (!process.env.__daemon) {
 				var cli_args = process.execArgv;
 				if (!cli_args.length) cli_args = this.config.get('gc_cli_args') || [];
+				cli_args = cli_args.concat( this.config.get('inject_cli_args') || [] );
+				
 				cli_args.reverse().forEach( function(arg) {
 					process.argv.splice( 1, 0, arg );
 				} );

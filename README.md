@@ -268,6 +268,7 @@ Here are the global configuration keys:
 | `uid` | `null` | If set and running as root, forked daemon process will attempt to switch to the specified user (numerical ID or a username string). |
 | `pid_file` | - | Optionally set a PID file, that is created on startup and deleted on shutdown. |
 | `debug_level` | `1` | Debug logging level, larger numbers are more verbose, 1 is quietest, 10 is loudest. |
+| `inject_cli_args` | - | Optionally inject Node.js command-line arguments into forked daemon process, e.g. `["--max_old_space_size=4096"]`. |
 
 Remember that each component should have its own configuration key.  Here is an example server configuration, including the `WebServer` component:
 
