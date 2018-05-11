@@ -266,6 +266,7 @@ Here are the global configuration keys:
 | `log_columns` | [Array] | Custom event log columns, if desired (see [Logging](#logging) below). |
 | `log_crashes` | `false` | When set to `true`, will log all uncaught exceptions to a `crash.log` file in the `log_dir` dir. |
 | `uid` | `null` | If set and running as root, forked daemon process will attempt to switch to the specified user (numerical ID or a username string). |
+| `pid_file` | - | Optionally set a PID file, that is created on startup and deleted on shutdown. |
 | `debug_level` | `1` | Debug logging level, larger numbers are more verbose, 1 is quietest, 10 is loudest. |
 
 Remember that each component should have its own configuration key.  Here is an example server configuration, including the `WebServer` component:

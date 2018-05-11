@@ -111,9 +111,10 @@ module.exports = Class.create({
 		
 		// become a daemon unless in debug mode
 		if (!this.debug) {
-			// pass --expose_gc down to daemon process if enabled
-			if (!process.env.__daemon && global.gc) {
-				var cli_args = this.config.get('gc_cli_args') || ['--expose_gc', '--always_compact'];
+			// pass node cli args down to forked daemon process
+			if (!process.env.__daemon) {
+				var cli_args = process.execArgv;
+				if (!cli_args.length) cli_args = this.config.get('gc_cli_args') || [];
 				cli_args.reverse().forEach( function(arg) {
 					process.argv.splice( 1, 0, arg );
 				} );
