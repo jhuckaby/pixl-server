@@ -258,8 +258,9 @@ Here are the global configuration keys:
 
 | Config Key | Default Value | Description |
 |------------|---------------|-------------|
-| `debug` | `false` | When set to `true`, will run directly on the console without forking a daemon process. |
-| `echo` | `false` | When set to `true` and combined with `debug`, will echo all log output to the console. |
+| `foreground` | `false` | When set to `true`, will run directly on the console without forking a daemon process. |
+| `debug` | `false` | When set to `true`, will run directly on the console without forking a daemon process and enable debug behavior. |
+| `echo` | `false` | When set to `true` and combined with `debug` or `foreground`, will echo all log output to the console. |
 | `color` | `false` | When set to `true` and combined with `echo`, all log columns will be colored in the console. |
 | `log_dir` | "." | Directory path where event log will be stored. |
 | `log_filename` | "event.log" | Event log filename, joined with `log_dir`. |

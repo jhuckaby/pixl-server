@@ -76,6 +76,7 @@ module.exports = Class.create({
 			}
 		}
 		
+		this.foreground = this.config.get('foreground') || false;
 		this.debug = this.config.get('debug') || false;
 		this.echo = this.config.get('echo') || false;
 		this.color = this.config.get('color') || false;
@@ -109,8 +110,8 @@ module.exports = Class.create({
 		// allow components to hook post init and possibly interrupt startup
 		if (!this.earlyStartComponents()) return;
 		
-		// become a daemon unless in debug mode
-		if (!this.debug) {
+		// become a daemon unless in debug mode or foreground mode
+		if (!this.debug && !this.foreground) {
 			// pass node cli args down to forked daemon process
 			if (!process.env.__daemon) {
 				var cli_args = process.execArgv;
