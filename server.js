@@ -2,7 +2,7 @@
 // Copyright (c) 2014 Joseph Huckaby
 // Released under the MIT License
 
-var path = require('path');
+var Path = require('path');
 var fs = require('fs');
 var os = require('os');
 var async = require('async');
@@ -69,6 +69,23 @@ module.exports = Class.create({
 		// parse config file and cli args
 		this.config = new Config( this.configFile || this.config, true );
 		
+		// allow APPNAME_key env vars to override config
+		var env_regex = new RegExp( "^" + this.__name.replace(/\W+/g, '_').toUpperCase() + "_(.+)$" );
+		for (var key in process.env) {
+			if (key.match(env_regex)) {
+				var path = RegExp.$1.trim().replace(/^_+/, '').replace(/_+$/, '').replace(/__/g, '/');
+				var value = process.env[key].toString();
+				
+				// massage value into various types
+				if (value === 'true') value = true;
+				else if (value === 'false') value = false;
+				else if (value.match(/^\-?\d+$/)) value = parseInt(value);
+				else if (value.match(/^\-?\d+\.\d+$/)) value = parseFloat(value);
+				
+				this.config.setPath(path, value);
+			}
+		}
+		
 		// allow class to override config
 		if (this.configOverrides) {
 			for (var key in this.configOverrides) {
@@ -77,6 +94,7 @@ module.exports = Class.create({
 		}
 		
 		this.debug = this.config.get('debug') || false;
+		this.foreground = this.config.get('foreground') || false;
 		this.echo = this.config.get('echo') || false;
 		this.color = this.config.get('color') || false;
 		
@@ -93,7 +111,7 @@ module.exports = Class.create({
 		
 		// setup log agent
 		this.logger = new Logger(
-			path.join( (this.config.get('log_dir') || '.'), (this.config.get('log_filename') || 'event.log') ),
+			Path.join( (this.config.get('log_dir') || '.'), (this.config.get('log_filename') || 'event.log') ),
 			this.config.get('log_columns') || ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data'],
 			{ echo: this.echo, color: this.color, hostname: os.hostname() }
 		);
@@ -110,7 +128,7 @@ module.exports = Class.create({
 		if (!this.earlyStartComponents()) return;
 		
 		// become a daemon unless in debug mode
-		if (!this.debug) {
+		if (!this.debug && !this.foreground) {
 			// pass node cli args down to forked daemon process
 			if (!process.env.__daemon) {
 				var cli_args = process.execArgv;
@@ -126,11 +144,13 @@ module.exports = Class.create({
 			require('daemon')({
 				cwd: process.cwd() // workaround for https://github.com/indexzero/daemon.node/issues/41
 			});
-			
+		} // not in debug or foreground mode
+		
+		if (!this.debug) {
 			// log crashes before exiting
 			if (this.config.get('log_crashes')) {
 				require('uncatch').on('uncaughtException', function(err) {
-					fs.appendFileSync( path.join(self.config.get('log_dir'), 'crash.log'),
+					fs.appendFileSync( Path.join(self.config.get('log_dir'), 'crash.log'),
 						(new Date()).toString() + "\n" + 
 						err.stack + "\n\n"
 					);
