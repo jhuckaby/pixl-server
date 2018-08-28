@@ -112,10 +112,12 @@ module.exports = Class.create({
 		// setup log agent
 		this.logger = new Logger(
 			Path.join( (this.config.get('log_dir') || '.'), (this.config.get('log_filename') || 'event.log') ),
-			this.config.get('log_columns') || ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data'],
+			this.config.get('log_columns') || ['hires_epoch', 'date', 'hostname', 'pid', 'component', 'category', 'code', 'msg', 'data'],
 			{ echo: this.echo, color: this.color, hostname: os.hostname() }
 		);
 		this.logger.set( 'debugLevel', this.config.get('debug_level') || 1 );
+		if (!this.config.get('log_async')) this.logger.set('sync', true);
+		
 		this.logDebug(1, this.__name + " v" + this.__version + " Starting Up");
 		
 		// if echoing log, capture stdout errors in case user pipes us to something then hits ctrl-c
@@ -138,6 +140,8 @@ module.exports = Class.create({
 				cli_args.reverse().forEach( function(arg) {
 					process.argv.splice( 1, 0, arg );
 				} );
+				
+				this.logDebug(2, "Spawning background daemon process (PID " + process.pid + " will exit)", process.argv);
 			}
 			
 			// respawn as daemon or continue if we are already one
@@ -151,9 +155,11 @@ module.exports = Class.create({
 			if (this.config.get('log_crashes')) {
 				require('uncatch').on('uncaughtException', function(err) {
 					fs.appendFileSync( Path.join(self.config.get('log_dir'), 'crash.log'),
-						(new Date()).toString() + "\n" + 
+						(new Date()).toString() + " - " + os.hostname() + " - PID " + process.pid + "\n" + 
 						err.stack + "\n\n"
 					);
+					self.logger.set('sync', true);
+					self.logDebug(1, "Uncaught Exception: " + err);
 					// do not call exit here, as uncatch handles that
 				});
 			}
@@ -161,10 +167,48 @@ module.exports = Class.create({
 		
 		// write pid file
 		if (this.config.get('pid_file')) {
-			try { fs.writeFileSync( this.config.get('pid_file'), process.pid ); }
+			var pid_file = this.config.get('pid_file');
+			var pid = 0;
+			try { pid = parseInt( fs.readFileSync( pid_file, 'utf8' ) ); } catch (e) {;}
+			
+			if (pid) {
+				this.logDebug(1, "WARNING: An old PID File was found: " + pid_file + ": " + pid);
+				
+				var ping = false;
+				try { ping = process.kill( pid, 0 ); }
+				catch (e) {;}
+				
+				if (ping) {
+					var msg = "FATAL ERROR: Process " + pid + " from " + pid_file + " is still alive and running.  Aborting startup.";
+					this.logger.set('sync', true);
+					this.logDebug(1, msg);
+					process.exit(1);
+				}
+				else {
+					this.logDebug(2, "Old process " + pid + " is apparently dead, so the PID file will be replaced: " + pid_file);
+				}
+			}
+			
+			this.logDebug(9, "Writing PID File: " + pid_file + ": " + process.pid);
+			
+			try { fs.writeFileSync( pid_file, process.pid ); }
 			catch (e) {
-				var msg = "FATAL ERROR: PID file could not be created: " + this.config.get('pid_file') + ": " + e;
-				throw new Error(msg);
+				var msg = "FATAL ERROR: PID file could not be created: " + pid_file + ": " + e;
+				this.logger.set('sync', true);
+				this.logDebug(1, msg);
+				process.exit(1);
+			}
+			
+			// confirm PID file was actually written
+			try {
+				pid = fs.readFileSync( pid_file, 'utf8' );
+				this.logDebug(9, "Confirmed PID File contents: " + pid_file + ": " + pid);
+			}
+			catch (e) {
+				var msg = "FATAL ERROR: PID file could not be read: " + pid_file + ": " + e;
+				this.logger.set('sync', true);
+				this.logDebug(1, msg);
+				process.exit(1);
 			}
 		}
 		
@@ -231,7 +275,8 @@ module.exports = Class.create({
 			function(err) {
 				// all components started
 				if (err) {
-					self.logError(1, "Component startup error: " + err);
+					self.logError('startup', "Component startup error: " + err);
+					self.logDebug(1, "Component startup error: " + err);
 					self.shutdown();
 				}
 				else self.run(callback);
@@ -302,10 +347,15 @@ module.exports = Class.create({
 		// shutdown all components
 		var self = this;
 		this.logger.set('sync', true);
+		this.logDebug(1, "Shutting down");
 		
 		// delete pid file
 		if (this.config.get('pid_file')) {
-			try { fs.unlinkSync( this.config.get('pid_file') ); }
+			try {
+				var pid = fs.readFileSync( this.config.get('pid_file'), 'utf8' );
+				this.logDebug(9, "Deleting PID File: " + this.config.get('pid_file') + ": " + pid);
+				fs.unlinkSync( this.config.get('pid_file') );
+			}
 			catch (e) {;}
 		}
 		
@@ -315,7 +365,6 @@ module.exports = Class.create({
 			process.exit(1);
 		}
 		this.shut = true;
-		this.logDebug(1, "Shutting down");
 		
 		// stop tick timer
 		if (this.tickTimer) {
