@@ -86,10 +86,18 @@ module.exports = Class.create({
 			}
 		}
 		
+		// allow overrides via special file containing json paths (in dot or slash notation)
+		if (this.config.get('config_overrides_file')) {
+			this.configOverrides = JSON.parse( 
+				fs.readFileSync( this.config.get('config_overrides_file'), 'utf8' ) 
+			);
+		}
+		
 		// allow class to override config
 		if (this.configOverrides) {
 			for (var key in this.configOverrides) {
-				this.config.set(key, this.configOverrides[key]);
+				var path = key.match(env_regex) ? RegExp.$1.trim().replace(/^_+/, '').replace(/_+$/, '').replace(/__/g, '/') : key;
+				this.config.setPath(path, this.configOverrides[key]);
 			}
 		}
 		
@@ -118,7 +126,18 @@ module.exports = Class.create({
 		this.logger.set( 'debugLevel', this.config.get('debug_level') || 1 );
 		if (!this.config.get('log_async')) this.logger.set('sync', true);
 		
-		this.logDebug(1, this.__name + " v" + this.__version + " Starting Up");
+		if (this.debug || this.foreground || process.env.__daemon) {
+			// avoid dupe log entries when forking daemon background process
+			this.logDebug(1, this.__name + " v" + this.__version + " Starting Up", {
+				pid: process.pid,
+				ppid: process.ppid || 0,
+				node: process.version,
+				arch: process.arch,
+				platform: process.platform,
+				argv: process.argv,
+				execArgv: process.execArgv
+			});
+		}
 		
 		// if echoing log, capture stdout errors in case user pipes us to something then hits ctrl-c
 		if (this.echo) process.stdout.on('error', function() {});
