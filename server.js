@@ -178,7 +178,7 @@ module.exports = Class.create({
 						err.stack + "\n\n"
 					);
 					self.logger.set('sync', true);
-					self.logDebug(1, "Uncaught Exception: " + err);
+					self.logDebug(1, "Uncaught Exception: " + err, err.stack);
 					// do not call exit here, as uncatch handles that
 				});
 			}
