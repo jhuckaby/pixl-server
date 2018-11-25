@@ -126,6 +126,17 @@ module.exports = Class.create({
 		this.logger.set( 'debugLevel', this.config.get('debug_level') || 1 );
 		if (!this.config.get('log_async')) this.logger.set('sync', true);
 		
+		// optional echo categories
+		if (this.echo && (typeof(this.echo) == 'string') && !this.echo.match(/^\d+$/)) {
+			var re = new RegExp( '(' + this.echo.replace(/\s+/g, '|') + ')' );
+			this.logger.set( 'echoer', function(line, cols, args) {
+				if ( (''+args.component).match(re) || (''+args.category).match(re) ) {
+					if (self.color) process.stdout.write( self.logger.colorize(cols) + "\n" );
+					else process.stdout.write( line );
+				}
+			} );
+		} // echo
+		
 		if (this.debug || this.foreground || process.env.__daemon) {
 			// avoid dupe log entries when forking daemon background process
 			this.logDebug(1, this.__name + " v" + this.__version + " Starting Up", {

@@ -304,6 +304,16 @@ Actually, you can set a configuration key to boolean `true` simply by including 
 node my-script.js --debug --echo
 ```
 
+### Optional Echo Categories
+
+If you want to limit the log echo to certain log categories or components, you can specify them on the command-line, like this:
+
+```
+node my-script.js --debug 1 --echo "debug error"
+```
+
+This would limit the log echo to entries that had their `category` or `component` column set to either `debug` or `error`.  Other non-matched entries would still be logged -- they just wouldn't be echoed to the console.
+
 # Logging
 
 The server keeps an event log using the [pixl-logger](https://www.npmjs.com/package/pixl-logger) module.  This is a combination of a debug log, error log and transaction log, with a `category` column denoting the type of log entry.  By default, the log columns are defined as:
@@ -544,9 +554,9 @@ On an uncaught exception, this code would run *in addition to* the server loggin
 
 # License
 
-The MIT License (MIT)
+**The MIT License (MIT)**
 
-Copyright (c) 2015 - 2018 Joseph Huckaby.
+*Copyright (c) 2015 - 2018 Joseph Huckaby.*
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
