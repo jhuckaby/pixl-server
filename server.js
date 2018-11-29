@@ -25,6 +25,11 @@ module.exports = Class.create({
 	tickTimer: null,
 	lastTickDate: null,
 	
+	configOverrides: null,
+	coFile: '',
+	coModTime: 0,
+	coCheckTime: 0,
+	
 	__construct: function(overrides) {
 		// class constructor
 		if (overrides) {
@@ -68,38 +73,7 @@ module.exports = Class.create({
 		
 		// parse config file and cli args
 		this.config = new Config( this.configFile || this.config, true );
-		
-		// allow APPNAME_key env vars to override config
-		var env_regex = new RegExp( "^" + this.__name.replace(/\W+/g, '_').toUpperCase() + "_(.+)$" );
-		for (var key in process.env) {
-			if (key.match(env_regex)) {
-				var path = RegExp.$1.trim().replace(/^_+/, '').replace(/_+$/, '').replace(/__/g, '/');
-				var value = process.env[key].toString();
-				
-				// massage value into various types
-				if (value === 'true') value = true;
-				else if (value === 'false') value = false;
-				else if (value.match(/^\-?\d+$/)) value = parseInt(value);
-				else if (value.match(/^\-?\d+\.\d+$/)) value = parseFloat(value);
-				
-				this.config.setPath(path, value);
-			}
-		}
-		
-		// allow overrides via special file containing json paths (in dot or slash notation)
-		if (this.config.get('config_overrides_file')) {
-			this.configOverrides = JSON.parse( 
-				fs.readFileSync( this.config.get('config_overrides_file'), 'utf8' ) 
-			);
-		}
-		
-		// allow class to override config
-		if (this.configOverrides) {
-			for (var key in this.configOverrides) {
-				var path = key.match(env_regex) ? RegExp.$1.trim().replace(/^_+/, '').replace(/_+$/, '').replace(/__/g, '/') : key;
-				this.config.setPath(path, this.configOverrides[key]);
-			}
-		}
+		this.applyConfigOverrides();
 		
 		this.debug = this.config.get('debug') || false;
 		this.foreground = this.config.get('foreground') || false;
@@ -253,6 +227,61 @@ module.exports = Class.create({
 		} );
 	},
 	
+	applyConfigOverrides: function() {
+		// allow APPNAME_key env vars to override config
+		var env_regex = new RegExp( "^" + this.__name.replace(/\W+/g, '_').toUpperCase() + "_(.+)$" );
+		for (var key in process.env) {
+			if (key.match(env_regex)) {
+				var path = RegExp.$1.trim().replace(/^_+/, '').replace(/_+$/, '').replace(/__/g, '/');
+				var value = process.env[key].toString();
+				
+				// massage value into various types
+				if (value === 'true') value = true;
+				else if (value === 'false') value = false;
+				else if (value.match(/^\-?\d+$/)) value = parseInt(value);
+				else if (value.match(/^\-?\d+\.\d+$/)) value = parseFloat(value);
+				
+				this.logDebug(9, "Applying env config override: " + key, value);
+				this.config.setPath(path, value);
+			}
+		}
+		
+		// allow overrides via special file containing json paths (in dot or slash notation)
+		if (this.config.get('config_overrides_file')) {
+			this.coFile = this.config.get('config_overrides_file');
+			this.coModTime = 0;
+			this.coCheckTime = Tools.timeNow(true);
+			this.configOverrides = null;
+			try {
+				var stats = fs.statSync( this.coFile );
+				this.coModTime = stats.mtime.getTime();
+			}
+			catch(err) {
+				this.logDebug(3, "Config overrides file not found, skipping: " + this.coFile);
+			}
+			if (this.coModTime) {
+				this.logDebug(8, "Loading config overrides file: " + this.coFile);
+				try {
+					this.configOverrides = JSON.parse( fs.readFileSync( this.coFile, 'utf8' ) );
+				}
+				catch (err) {
+					this.logError('config', "Config overrides file could not be loaded, skipping: " + this.coFile + ": " + err);
+					this.configOverrides = null;
+				}
+			}
+		}
+		
+		// allow class to override config
+		if (this.configOverrides) {
+			for (var key in this.configOverrides) {
+				var path = key.match(env_regex) ? RegExp.$1.trim().replace(/^_+/, '').replace(/_+$/, '').replace(/__/g, '/') : key;
+				var value = this.configOverrides[key];
+				this.logDebug(9, "Applying config override: " + key, value);
+				this.config.setPath(path, value);
+			}
+		}
+	},
+	
 	startup: function(callback) {
 		// setup server and fire callback
 		var self = this;
@@ -286,6 +315,7 @@ module.exports = Class.create({
 		
 		// monitor config changes
 		this.config.on('reload', function() {
+			self.applyConfigOverrides();
 			self.logDebug(2, "Configuration was reloaded", self.config.get());
 		} );
 		this.config.on('error', function(err) {
@@ -357,6 +387,7 @@ module.exports = Class.create({
 	
 	tick: function() {
 		// run every second, for periodic tasks
+		var self = this;
 		this.emit('tick');
 		
 		// also emit minute, hour and day events when they change
@@ -371,6 +402,24 @@ module.exports = Class.create({
 		if (dargs.mon != this.lastTickDate.mon) this.emit('month', dargs);
 		if (dargs.year != this.lastTickDate.year) this.emit('year', dargs);
 		this.lastTickDate = dargs;
+		
+		// monitor config overrides file
+		if (this.coModTime && (dargs.epoch - this.coCheckTime >= this.config.freq / 1000)) {
+			this.coCheckTime = dargs.epoch;
+			
+			fs.stat( this.coFile, function(err, stats) {
+				// ignore errors here due to possible race conditions
+				var mod = (stats && stats.mtime) ? stats.mtime.getTime() : 0;
+				
+				if (mod && (mod != self.coModTime)) {
+					// file has changed on disk, schedule a reload
+					self.coModTime = mod;
+					self.logDebug(3, "Config overrides file has changed on disk, scheduling reload: " + self.coFile);
+					self.config.mod = 0;
+					self.config.check();
+				}
+			}); // fs.stat
+		}
 	},
 	
 	shutdown: function(callback) {
@@ -437,22 +486,29 @@ module.exports = Class.create({
 	
 	debugLevel: function(level) {
 		// check if we're logging at or above the requested level
+		if (!this.logger) return false;
 		return (this.logger.get('debugLevel') >= level);
 	},
 	
-	logDebug: function(level, msg, data) { 
-		this.logger.set( 'component', this.__name );
-		this.logger.debug(level, msg, data); 
+	logDebug: function(level, msg, data) {
+		if (this.logger) {
+			this.logger.set( 'component', this.__name );
+			this.logger.debug(level, msg, data);
+		}
 	},
 	
-	logError: function(code, msg, data) { 
-		this.logger.set( 'component', this.__name );
-		this.logger.error(code, msg, data); 
+	logError: function(code, msg, data) {
+		if (this.logger) {
+			this.logger.set( 'component', this.__name );
+			this.logger.error(code, msg, data);
+		}
 	},
 	
-	logTransaction: function(code, msg, data) { 
-		this.logger.set( 'component', this.__name );
-		this.logger.transaction(code, msg, data); 
+	logTransaction: function(code, msg, data) {
+		if (this.logger) {
+			this.logger.set( 'component', this.__name );
+			this.logger.transaction(code, msg, data);
+		}
 	}
 	
 });
