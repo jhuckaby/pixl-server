@@ -314,6 +314,124 @@ node my-script.js --debug 1 --echo "debug error"
 
 This would limit the log echo to entries that had their `category` or `component` column set to either `debug` or `error`.  Other non-matched entries would still be logged -- they just wouldn't be echoed to the console.
 
+## Multi-File Configuration
+
+If your app has multiple configuration files, you can specify a `multiConfig` property (instead of `configFile`) in your pixl-server class.  The `multiConfig` property should be an array of objects, with each object representing one configuration file.  The properties in the objects should be as follows:
+
+| Property Name | Description |
+|---------------|-------------|
+| `file` | **(Required)** Filesystem path to the configuration file. |
+| `key` | Optional key for configuration to live under (omit to merge file into top-level config). |
+| `parser` | Optional function for parsing custom file format (defaults to `JSON.parse`). |
+| `freq` | Optional frequency for polling file for changes (in milliseconds, defaults to `10000`). |
+
+So for example, let's say you had one main configuration file which you want loaded and parsed as usual, but you also have an environment-specific config file, and want it included as well, but separated into its own namespace.  Here is how you could accomplish this with `multiConfig`:
+
+```js
+"multiConfig": [
+	{
+		"file": "/opt/myapp/conf/config.json"
+	},
+	{
+		"file": "/etc/env.json",
+		"key": "env"
+	}
+]
+```
+
+So in the above example the `config.json` file would be loaded and parsed as if it were the main configuration file (since it has no `key` property), and its contents merged into the top-level server configuration.  Then the `/etc/env.json` file would also be parsed, and its contents made available in the `env` configuration key.  So you could access it via:
+
+```js
+var env = server.config.get('env');
+```
+
+Both files would be monitored for changes (polled every 10 seconds by default) and hot-reloaded as necessary.  If any file is reloaded, a `reload` event is emitted on the main `server.config` object, so you can listen for this and perform any app-specific operations as needed.
+
+For another example, let's say your environment-specific file is actually in [XML](https://en.wikipedia.org/wiki/XML) format.  For this, you need to specify a custom parser function via the `parser` property.  If you use our own [pixl-xml](https://www.npmjs.com/package/pixl-xml) module, the usage is as follows:
+
+```js
+"multiConfig": [
+	{
+		"file": "/opt/myapp/conf/config.json"
+	},
+	{
+		"file": "/etc/env.xml",
+		"key": "env",
+		"parser": require('pixl-xml').parse
+	}
+]
+```
+
+Your `parser` function is passed a single argument, which is the file contents preloaded as UTF-8 text, and it is expected to return an object containing the parsed data.  If you need to parse your own custom file format, you can call your own inline function like this:
+
+```js
+"multiConfig": [
+	{
+		"file": "/opt/myapp/conf/config.json"
+	},
+	{
+		"file": "/etc/env.ini",
+		"key": "env",
+		"parser": function(text) {
+			// parse simple INI `key=value` format
+			var config = {};
+			text.split(/\n/).forEach( function(line) {
+				if (line.trim().match(/^(\w+)\=(.+)/)) { 
+					config[ RegExp.$1 ] = RegExp.$2; 
+				}
+			} );
+			return config;
+		}
+	}
+]
+```
+
+If your custom parser function throws during the initial load at startup, the error will bubble up and cause an immediate shutdown.  However, if it throws during a hot reload event, the error is caught, logged as a level 1 debug event, and the old configuration is used until the file is modified again.  This way a malformed config file edit won't bring down a live server.
+
+It is perfectly fine to have multiple configuration files that "share" the top-level main configuration namespace.  Just specify multiple files without `key` properties.  Example:
+
+```js
+"multiConfig": [
+	{
+		"file": "/opt/myapp/conf/config-part-1.json"
+	},
+	{
+		"file": "/opt/myapp/conf/config-part-2.json"
+	}
+]
+```
+
+Beware of key collision here inside your files: no error is thrown, and the latter prevails.
+
+You can also combine an inline `config` object, and the `multiConfig` object, in your server properties.  The files in the `multiConfig` array take precedence, and can override any keys present in the inline config.  Example:
+
+```js
+{
+	"config": {
+		"log_dir": "/var/log",
+		"log_filename": "myapp.log",
+		"debug_level": 9
+	},
+	"multiConfig": [
+		{
+			"file": "/opt/myapp/conf/config.json"
+		},
+		{
+			"file": "/etc/env.json",
+			"key": "env"
+		}
+	]
+}
+```
+
+If you need to temporarily swap out your `multiConfig` file paths for testing, you can do so on the command-line.  Simply specify one or more `--multiConfig` CLI arguments, each one pointing to a replacement file.  The files must be specified in order of the items in your `multiConfig` array.  Example:
+
+```
+node myserver.js --multiConfig test/config.json --multiConfig test/env.json
+```
+
+**Note:** The `configFile` and `multiConfig` server properties are mutually exclusive.  If you specify `configFile`  it takes precedence, and disables the multi-config system.
+
 # Logging
 
 The server keeps an event log using the [pixl-logger](https://www.npmjs.com/package/pixl-logger) module.  This is a combination of a debug log, error log and transaction log, with a `category` column denoting the type of log entry.  By default, the log columns are defined as:
@@ -556,7 +674,7 @@ On an uncaught exception, this code would run *in addition to* the server loggin
 
 **The MIT License (MIT)**
 
-*Copyright (c) 2015 - 2018 Joseph Huckaby.*
+*Copyright (c) 2015 - 2019 by Joseph Huckaby.*
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

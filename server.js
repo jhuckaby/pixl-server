@@ -67,12 +67,13 @@ module.exports = Class.create({
 		var self = this;
 		
 		// allow CLI to override configFile
-		var args = new Args();
+		var args = this.args = new Args();
 		if (args.get('configFile')) this.configFile = args.get('configFile');
 		else if (args.get('config')) this.configFile = args.get('config');
 		
 		// parse config file and cli args
-		this.config = new Config( this.configFile || this.config, true );
+		this.config = new Config( this.configFile || this.config || {}, true );
+		if (this.multiConfig && !this.configFile) this.setupMultiConfig();
 		this.applyConfigOverrides();
 		
 		this.debug = this.config.get('debug') || false;
@@ -227,6 +228,66 @@ module.exports = Class.create({
 		} );
 	},
 	
+	setupMultiConfig: function() {
+		// allow multiple separate config files to automerge
+		// multiConfig: [ {file, parser, key, freq}, ... ]
+		var self = this;
+		
+		// allow CLI to swap out one or more multi-config file paths
+		if (self.args.multiConfig) {
+			var files = Tools.alwaysArray( self.args.multiConfig );
+			for (var idx = 0, len = files.length; idx < len; idx++) {
+				this.multiConfig[idx].file = files[idx];
+			}
+		}
+		
+		this.multiConfig.forEach( function(multi) {
+			var config = new Config(); // manual setup
+			config.configFile = multi.file;
+			
+			if (multi.parser) config.parse = multi.parser;
+			if (multi.freq) config.freq = multi.freq;
+			
+			// top-level master config gets CLI args
+			if (!multi.key) config.args = self.args;
+			
+			config.load();
+			config.monitor();
+			
+			// merge into top-level config
+			if (multi.key) {
+				// sub-config lives under specified key
+				self.config.set( multi.key, config.get() );
+			}
+			else {
+				// merge sub-config into base
+				self.config.import( config.get() );
+			}
+			
+			// listen for reloads
+			config.on('reload', function() {
+				self.logDebug(3, "Multi-config file reloaded: " + config.configFile);
+				
+				// re-merge into base config
+				if (multi.key) self.config.set( multi.key, config.get() );
+				else self.config.import( config.get() );
+				
+				// propagate reload event to server
+				self.config.emit('reload');
+				
+				// and to components
+				self.config.refreshSubs();
+			}); // reload
+			
+			config.on('error', function(err) {
+				self.logDebug(1, "Multi-config reload error: " + err);
+			} );
+			
+			// save ref in server
+			multi.config = config;
+		}); // forEach
+	},
+	
 	applyConfigOverrides: function() {
 		// allow APPNAME_key env vars to override config
 		var env_regex = new RegExp( "^" + this.__name.replace(/\W+/g, '_').toUpperCase() + "_(.+)$" );
@@ -319,7 +380,7 @@ module.exports = Class.create({
 			self.logDebug(2, "Configuration was reloaded", self.config.get());
 		} );
 		this.config.on('error', function(err) {
-			self.logDebug(1, "Config reload error:" + err);
+			self.logDebug(1, "Config reload error: " + err);
 		} );
 		
 		// notify listeners we are starting components
@@ -451,8 +512,12 @@ module.exports = Class.create({
 			delete this.tickTimer;
 		}
 		
-		// stop config monitor
+		// stop config monitors
 		this.config.stop();
+		
+		if (this.multiConfig) {
+			this.multiConfig.forEach( function(multi) { multi.config.stop(); } );
+		}
 		
 		// if startup was interrupted, exit immediately
 		if (!this.started) {
