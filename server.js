@@ -516,7 +516,9 @@ module.exports = Class.create({
 		this.config.stop();
 		
 		if (this.multiConfig) {
-			this.multiConfig.forEach( function(multi) { multi.config.stop(); } );
+			this.multiConfig.forEach( function(multi) { 
+				if (multi.config) multi.config.stop(); 
+			} );
 		}
 		
 		// if startup was interrupted, exit immediately
