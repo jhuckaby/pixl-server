@@ -167,7 +167,7 @@ module.exports = Class.create({
 			// log crashes before exiting
 			if (this.config.get('log_crashes')) {
 				require('uncatch').on('uncaughtException', function(err) {
-					fs.appendFileSync( Path.join(self.config.get('log_dir'), 'crash.log'),
+					fs.appendFileSync( Path.join(self.config.get('log_dir'), self.config.get('crash_filename') || 'crash.log'),
 						(new Date()).toString() + " - " + os.hostname() + " - PID " + process.pid + "\n" + 
 						err.stack + "\n\n"
 					);
