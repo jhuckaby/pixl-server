@@ -42,6 +42,10 @@ module.exports = Class.create({
 			for (var idx = 0, len = this.components.length; idx < len; idx++) {
 				var compClass = this.components[idx];
 				var comp = new compClass();
+				
+				// try to detect class name if not explicitly provided
+				if (!comp.__name) comp.__name = compClass.name || Object.getPrototypeOf(comp).constructor.name || 'Generic';
+				
 				this.components[idx] = comp;
 				this[ comp.__name ] = comp;
 			}
@@ -57,6 +61,10 @@ module.exports = Class.create({
 		for (var idx = 0, len = arguments.length; idx < len; idx++) {
 			var compClass = arguments[idx];
 			var comp = new compClass();
+			
+			// try to detect class name if not explicitly provided
+			if (!comp.__name) comp.__name = compClass.name || Object.getPrototypeOf(comp).constructor.name || 'Generic';
+			
 			this.components.push( comp );
 			this[ comp.__name ] = comp;
 		}

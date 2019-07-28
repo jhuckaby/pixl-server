@@ -6,7 +6,7 @@ var Class = require("pixl-class");
 
 module.exports = Class.create({
 	
-	__name: 'Generic',
+	__name: '',
 	
 	server: null,
 	config: null,
