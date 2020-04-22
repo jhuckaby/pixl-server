@@ -122,7 +122,7 @@ module.exports = Class.create({
 		
 		if (this.debug || this.foreground || process.env.__daemon) {
 			// avoid dupe log entries when forking daemon background process
-			this.logDebug(1, this.__name + " v" + this.__version + " Starting Up", {
+			this.logDebug(2, this.__name + " v" + this.__version + " Starting Up", {
 				pid: process.pid,
 				ppid: process.ppid || 0,
 				node: process.version,
@@ -374,11 +374,11 @@ module.exports = Class.create({
 		
 		// listen for shutdown events
 		process.on('SIGINT', function() { 
-			self.logDebug(1, "Caught SIGINT");
+			self.logDebug(2, "Caught SIGINT");
 			self.shutdown(); 
 		} );
 		process.on('SIGTERM', function() { 
-			self.logDebug(1, "Caught SIGTERM");
+			self.logDebug(2, "Caught SIGTERM");
 			self.shutdown(); 
 		} );
 		
@@ -495,7 +495,7 @@ module.exports = Class.create({
 		// shutdown all components
 		var self = this;
 		this.logger.set('sync', true);
-		this.logDebug(1, "Shutting down");
+		this.logDebug(2, "Shutting down");
 		
 		// delete pid file
 		if (this.config.get('pid_file')) {
