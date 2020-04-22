@@ -88,6 +88,7 @@ module.exports = Class.create({
 		this.foreground = this.config.get('foreground') || false;
 		this.echo = this.config.get('echo') || false;
 		this.color = this.config.get('color') || false;
+		this.logDebugErrors = this.config.get('log_debug_errors') || false;
 		
 		// create base log dir
 		if (this.config.get('log_dir')) {
@@ -569,6 +570,9 @@ module.exports = Class.create({
 		if (this.logger) {
 			this.logger.set( 'component', this.__name );
 			this.logger.debug(level, msg, data);
+			
+			// optionally log level 1 debug events as fatal errors
+			if ((level == 1) && this.logDebugErrors) this.logger.error('fatal', msg, data);
 		}
 	},
 	
