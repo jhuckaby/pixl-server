@@ -1,6 +1,6 @@
 {
 	"name": "pixl-server",
-	"version": "1.0.25",
+	"version": "1.0.26",
 	"description": "A simple server daemon framework for Node.js.",
 	"author": "Joseph Huckaby <jhuckaby@gmail.com>",
 	"homepage": "https://github.com/jhuckaby/pixl-server",
@@ -28,7 +28,5 @@
 		"pixl-config": "^1.0.8",
 		"pixl-tools": "^1.0.19"
 	},
-	"devDependencies": {
-		
-	}
+	"devDependencies": {}
 }

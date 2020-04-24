@@ -205,7 +205,7 @@ module.exports = Class.create({
 			
 			this.logDebug(9, "Writing PID File: " + pid_file + ": " + process.pid);
 			
-			try { fs.writeFileSync( pid_file, process.pid ); }
+			try { fs.writeFileSync( pid_file, ''+process.pid ); }
 			catch (e) {
 				var msg = "FATAL ERROR: PID file could not be created: " + pid_file + ": " + e;
 				this.logger.set('sync', true);
