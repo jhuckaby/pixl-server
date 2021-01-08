@@ -159,9 +159,16 @@ module.exports = Class.create({
 			}
 			
 			// respawn as daemon or continue if we are already one
-			require('daemon')({
+			var daemon_opts = {
 				cwd: process.cwd() // workaround for https://github.com/indexzero/daemon.node/issues/41
-			});
+			};
+			if (this.config.get('stdout')) {
+				daemon_opts.stdout = fs.openSync(this.config.get('stdout'), 'a');
+			}
+			if (this.config.get('stderr')) {
+				daemon_opts.stderr = fs.openSync(this.config.get('stderr'), 'a');
+			}
+			require('daemon')(daemon_opts);
 		} // not in debug or foreground mode
 		
 		if (!this.debug) {

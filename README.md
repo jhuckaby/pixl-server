@@ -271,6 +271,8 @@ Here are the global configuration keys:
 | `debug_level` | `1` | Debug logging level, larger numbers are more verbose, 1 is quietest, 10 is loudest. |
 | `inject_cli_args` | - | Optionally inject Node.js command-line arguments into forked daemon process, e.g. `["--max_old_space_size=4096"]`. |
 | `log_debug_errors` | `false` | Optionally log all debug level 1 events as errors with `fatal` code.  Helps for visibility with log alerting systems. |
+| `stdout` | - | When forking a daemon process, this will redirect the forked process STDOUT stream to the specified file (will be created if necessary). |
+| `stderr` | - | When forking a daemon process, this will redirect the forked process STDERR stream to the specified file (will be created if necessary). |
 
 Remember that each component should have its own configuration key.  Here is an example server configuration, including the `WebServer` component:
 
