@@ -64,6 +64,8 @@ module.exports = Class.create({
 	
 	logDebug: function(level, msg, data) {
 		// proxy request to system logger with correct component
+		if (!this.logger.print && this.logger.debug) return this.logger.debug(level, msg, data);
+		
 		if (this.debugLevel(level)) {
 			this.logger.set( 'component', this.__name );
 			this.logger.print({ 
