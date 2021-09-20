@@ -284,9 +284,8 @@ module.exports = Class.create({
 			config.on('reload', function() {
 				self.logDebug(3, "Multi-config file reloaded: " + config.configFile);
 				
-				// re-merge into base config
-				if (multi.key) self.config.set( multi.key, config.get() );
-				else self.config.import( config.get() );
+				// re-merge all into base config
+				self.remergeAllConfigs();
 				
 				// propagate reload event to server
 				self.config.emit('reload');
@@ -302,6 +301,20 @@ module.exports = Class.create({
 			// save ref in server
 			multi.config = config;
 		}); // forEach
+	},
+	
+	remergeAllConfigs: function() {
+		// on multi-config reload we must re-merge all configs in natural order
+		// (so the proper overrides prevail, no matter which file was reloaded)
+		var self = this;
+		
+		this.multiConfig.forEach( function(multi) {
+			var config = multi.config;
+			
+			// re-merge into base config
+			if (multi.key) self.config.set( multi.key, config.get() );
+			else self.config.import( config.get() );
+		});
 	},
 	
 	applyConfigOverrides: function() {
