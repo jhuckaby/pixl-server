@@ -6,13 +6,14 @@ var Path = require('path');
 var fs = require('fs');
 var os = require('os');
 var async = require('async');
-var mkdirp = require('mkdirp');
 
 var Class  = require("pixl-class");
 var Logger = require("pixl-logger");
 var Config = require("pixl-config");
 var Tools  = require("pixl-tools");
 var Args   = require("pixl-args");
+
+var mkdirp = Tools.mkdirp;
 
 module.exports = Class.create({
 	
