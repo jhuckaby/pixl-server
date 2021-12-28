@@ -576,6 +576,7 @@ module.exports = Class.create({
 					self.logDebug(2, "Shutdown complete, exiting");
 					self.emit('shutdown');
 					if (callback) callback();
+					if (self.config.get('exit_on_shutdown')) process.exit(0);
 				}
 			}
 		); // foreach component
