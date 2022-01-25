@@ -249,6 +249,7 @@ module.exports = Class.create({
 		// allow multiple separate config files to automerge
 		// multiConfig: [ {file, parser, key, freq}, ... ]
 		var self = this;
+		var given_args = false;
 		
 		// allow CLI to swap out one or more multi-config file paths
 		if (self.args.multiConfig) {
@@ -266,7 +267,11 @@ module.exports = Class.create({
 			if (multi.freq) config.freq = multi.freq;
 			
 			// top-level master config gets CLI args
-			if (!multi.key) config.args = self.args;
+			// (if multiple files share top-level, only one gets the args)
+			if (!multi.key && !given_args) {
+				config.args = self.args;
+				given_args = true;
+			}
 			
 			config.load();
 			config.monitor();
