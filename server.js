@@ -288,7 +288,7 @@ module.exports = Class.create({
 			
 			// listen for reloads
 			config.on('reload', function() {
-				self.logDebug(3, "Multi-config file reloaded: " + config.configFile);
+				self.logDebug(3, "Multi-config file reloaded: " + config.configFile, { key: multi.key });
 				
 				// re-merge all into base config
 				self.remergeAllConfigs();
@@ -337,6 +337,7 @@ module.exports = Class.create({
 				else if (value.match(/^\-?\d+$/)) value = parseInt(value);
 				else if (value.match(/^\-?\d+\.\d+$/)) value = parseFloat(value);
 				
+				// Note: This code runs too early to log at startup, but it will log on config reload
 				this.logDebug(9, "Applying env config override: " + key, value);
 				this.config.setPath(path, value);
 			}
@@ -353,15 +354,21 @@ module.exports = Class.create({
 				this.coModTime = stats.mtime.getTime();
 			}
 			catch(err) {
+				// Note: This code runs too early to log at startup, but it will log on config reload
 				this.logDebug(3, "Config overrides file not found, skipping: " + this.coFile);
 			}
 			if (this.coModTime) {
+				// Note: This code runs too early to log at startup, but it will log on config reload
 				this.logDebug(8, "Loading config overrides file: " + this.coFile);
+				
 				try {
 					this.configOverrides = JSON.parse( fs.readFileSync( this.coFile, 'utf8' ) );
 				}
 				catch (err) {
-					this.logError('config', "Config overrides file could not be loaded, skipping: " + this.coFile + ": " + err);
+					// checking for `this.logger` because on startup this code runs too early to log anything at all
+					// throw on startup instead, so this is very loud indeed
+					if (!this.logger) throw new Error("Config overrides file could not be loaded: " + this.coFile + ": " + (err.message || err));
+					this.logError('config', "Config overrides file could not be loaded, skipping: " + this.coFile + ": " + (err.message || err));
 					this.configOverrides = null;
 				}
 			}
@@ -372,6 +379,7 @@ module.exports = Class.create({
 			for (var key in this.configOverrides) {
 				var path = key.match(env_regex) ? RegExp.$1.trim().replace(/^_+/, '').replace(/_+$/, '').replace(/__/g, '/') : key;
 				var value = this.configOverrides[key];
+				// Note: This code runs too early to log at startup, but it will log on config reload
 				this.logDebug(9, "Applying config override: " + key, value);
 				this.config.setPath(path, value);
 			}
@@ -412,7 +420,7 @@ module.exports = Class.create({
 		// monitor config changes
 		this.config.on('reload', function() {
 			self.applyConfigOverrides();
-			self.logDebug(2, "Configuration was reloaded", self.config.get());
+			self.logDebug(2, "Configuration was reloaded", self.debugLevel(9) ? self.config.get() : null);
 		} );
 		this.config.on('error', function(err) {
 			self.logDebug(1, "Config reload error: " + err);
