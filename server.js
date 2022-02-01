@@ -590,6 +590,8 @@ module.exports = Class.create({
 					self.emit('shutdown');
 					if (callback) callback();
 					if (self.config.get('exit_on_shutdown')) process.exit(0);
+					process.removeAllListeners('SIGINT');
+					process.removeAllListeners('SIGTERM');
 				}
 			}
 		); // foreach component
