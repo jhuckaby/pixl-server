@@ -408,14 +408,17 @@ module.exports = Class.create({
 		this.logDebug(2, "Server IP: " + this.ip + ", Daemon PID: " + process.pid);
 		
 		// listen for shutdown events
-		process.on('SIGINT', function() { 
+		this.sigIntFunc = function() { 
 			self.logDebug(2, "Caught SIGINT");
 			self.shutdown(); 
-		} );
-		process.on('SIGTERM', function() { 
+		};
+		process.on('SIGINT', this.sigIntFunc );
+		
+		this.sigTermFunc = function() { 
 			self.logDebug(2, "Caught SIGTERM");
 			self.shutdown(); 
-		} );
+		};
+		process.on('SIGTERM', this.sigTermFunc );
 		
 		// monitor config changes
 		this.config.on('reload', function() {
@@ -590,8 +593,8 @@ module.exports = Class.create({
 					self.emit('shutdown');
 					if (callback) callback();
 					if (self.config.get('exit_on_shutdown')) process.exit(0);
-					process.removeAllListeners('SIGINT');
-					process.removeAllListeners('SIGTERM');
+					if (self.sigIntFunc) process.off('SIGINT', self.sigIntFunc);
+					if (self.sigTermFunc) process.off('SIGTERM', self.sigTermFunc);
 				}
 			}
 		); // foreach component
