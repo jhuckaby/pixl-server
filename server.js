@@ -407,7 +407,7 @@ module.exports = Class.create({
 		
 		this.logDebug(2, "Server IP: " + this.ip + ", Daemon PID: " + process.pid);
 		
-		// listen for shutdown events
+		// listen for various shutdown signals
 		this.sigIntFunc = function() { 
 			self.logDebug(2, "Caught SIGINT");
 			self.shutdown(); 
@@ -419,6 +419,12 @@ module.exports = Class.create({
 			self.shutdown(); 
 		};
 		process.on('SIGTERM', this.sigTermFunc );
+		
+		this.sigHupFunc = function() { 
+			self.logDebug(2, "Caught SIGHUP");
+			self.shutdown(); 
+		};
+		process.on('SIGHUP', this.sigHupFunc );
 		
 		// monitor config changes
 		this.config.on('reload', function() {
