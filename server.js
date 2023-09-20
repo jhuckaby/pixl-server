@@ -528,8 +528,21 @@ module.exports = Class.create({
 					// file has changed on disk, schedule a reload
 					self.coModTime = mod;
 					self.logDebug(3, "Config overrides file has changed on disk, scheduling reload: " + self.coFile);
-					self.config.mod = 0;
-					self.config.check();
+					
+					if (self.multiConfig) {
+						// re-merge all into base config
+						self.remergeAllConfigs();
+						
+						// propagate reload event to server
+						self.config.emit('reload');
+						
+						// and to components
+						self.config.refreshSubs();
+					}
+					else {
+						self.config.mod = 0;
+						self.config.check();
+					}
 				}
 			}); // fs.stat
 		}
