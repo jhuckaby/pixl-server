@@ -477,6 +477,7 @@ module.exports = Class.create({
 	run: function(callback) {
 		// this is called at the very end of the startup process
 		// all components are started
+		var self = this;
 		
 		// optionally change uid if desired (only works if we are root)
 		// TODO: The log file will already be created as root, and will fail after switching users
@@ -487,7 +488,15 @@ module.exports = Class.create({
 		
 		// start tick timer for periodic tasks
 		this.lastTickDate = Tools.getDateArgs( new Date() );
-		this.tickTimer = setInterval( this.tick.bind(this), 1000 );
+		
+		var last_sec = Math.floor( Date.now() / 1000 );
+		this.tickTimer = setInterval( function() {
+			var now = Math.floor( Date.now() / 1000 );
+			if (now != last_sec) {
+				self.tick();
+				last_sec = now;
+			}
+		}, this.config.get('tick_precision_ms') || 100 );
 		
 		// start server main loop
 		this.logDebug(2, "Startup complete, entering main loop");
@@ -501,6 +510,8 @@ module.exports = Class.create({
 	tick: function() {
 		// run every second, for periodic tasks
 		var self = this;
+		if (this.shut) return;
+		
 		this.emit('tick');
 		
 		// also emit minute, hour and day events when they change
