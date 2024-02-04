@@ -6,26 +6,26 @@ This module is a generic server daemon framework, which supports a component plu
 
 Use [npm](https://www.npmjs.com/) to install the module:
 
-```
+```sh
 npm install pixl-server
 ```
 
 Then use `require()` to load it in your code:
 
-```javascript
-var PixlServer = require('pixl-server');
+```js
+const PixlServer = require('pixl-server');
 ```
 
 Then instantiate a server object and start it up:
 
-```javascript
-var server = new PixlServer({
+```js
+let server = new PixlServer({
 	
 	__name: 'MyServer',
 	__version: "1.0",
 	
 	config: {
-		"log_dir": "/var/log",
+		"log_dir": "/let/log",
 		"debug_level": 9,
 		"uid": "www"
 	},
@@ -40,22 +40,22 @@ server.startup( function() {
 
 Of course, this example won't actually do anything useful, because the server has no components.  Let's add a web server component to our server, just to show how it works:
 
-```javascript
-var PixlServer = require('pixl-server');
+```js
+let PixlServer = require('pixl-server');
 
-var server = new PixlServer({
+let server = new PixlServer({
 	
 	__name: 'MyServer',
 	__version: "1.0",
 	
 	config: {
-		"log_dir": "/var/log",
+		"log_dir": "/let/log",
 		"debug_level": 9,
 		"uid": "www",
 		
 		"WebServer": {
 			"http_port": 80,
-			"http_htdocs_dir": "/var/www/html"
+			"http_htdocs_dir": "/let/www/html"
 		}
 	},
 	
@@ -69,11 +69,11 @@ server.startup( function() {
 } );
 ```
 
-This example uses the [pixl-server-web](https://www.npmjs.com/package/pixl-server-web) component to turn our server into a web (HTTP) server.  It will listen on port 80 and serve static files in the `/var/www/html` folder.
+This example uses the [pixl-server-web](https://www.github.com/jhuckaby/pixl-server-web) component to turn our server into a web (HTTP) server.  It will listen on port 80 and serve static files in the `/let/www/html` folder.
 
 As you can see we're loading the `pixl-server-web` module by calling `require()` into the `components` array when creating our server object:
 
-```javascript
+```js
 components: [
 	require('pixl-server-web')
 ]
@@ -83,14 +83,14 @@ To include additional components, simply add them to this array.  Please note th
 
 Also, notice in the above example we added a new section to our existing `config` object, and named it `WebServer` (must match the component exactly).  In there we're setting a couple of new keys, which are specifically for that component:
 
-```javascript
+```js
 "WebServer": {
 	"http_port": 80,
-	"http_htdocs_dir": "/var/www/html"
+	"http_htdocs_dir": "/let/www/html"
 }
 ```
 
-Each component has its own section in the configuration file (or hash).  For more details on the WebServer configuration, see the [module documentation](https://www.npmjs.com/package/pixl-server-web).
+Each component has its own section in the configuration file (or hash).  For more details on the WebServer configuration, see the [module documentation](https://www.github.com/jhuckaby/pixl-server-web).
 
 # Components
 
@@ -104,39 +104,39 @@ As of this writing, the following stock server components are available via [npm
 
 ### WebServer (pixl-server-web)
 
-The WebServer ([pixl-server-web](https://www.npmjs.com/package/pixl-server-web)) component implements a full web (HTTP) server.  It supports HTTP and/or HTTPS, static file hosting, custom headers, as well as a hook system for routing specific URIs to your own handlers.
+The WebServer ([pixl-server-web](https://www.github.com/jhuckaby/pixl-server-web)) component implements a full web (HTTP) server.  It supports HTTP and/or HTTPS, static file hosting, custom headers, as well as a hook system for routing specific URIs to your own handlers.
 
-For more details, check it out on npm: [pixl-server-web](https://www.npmjs.com/package/pixl-server-web)
+For more details, check it out on npm: [pixl-server-web](https://www.github.com/jhuckaby/pixl-server-web)
 
 ### PoolManager (pixl-server-pool)
 
-The PoolManager ([pixl-server-pool](https://www.npmjs.com/package/pixl-server-pool)) component can delegate web requests to a pool of worker child processes.  This can be useful for CPU-hard operations such as image transformations, which would otherwise block the main thread.
+The PoolManager ([pixl-server-pool](https://www.github.com/jhuckaby/pixl-server-pool)) component can delegate web requests to a pool of worker child processes.  This can be useful for CPU-hard operations such as image transformations, which would otherwise block the main thread.
 
-For more details, check it out on npm: [pixl-server-pool](https://www.npmjs.com/package/pixl-server-pool)
+For more details, check it out on npm: [pixl-server-pool](https://www.github.com/jhuckaby/pixl-server-pool)
 
 ### JSON API (pixl-server-api)
 
-The API ([pixl-server-api](https://www.npmjs.com/package/pixl-server-api)) component provides a JSON REST API for your application.  It sits on top of (and relies on) the WebServer ([pixl-server-web](https://www.npmjs.com/package/pixl-server-web)) component.
+The API ([pixl-server-api](https://www.github.com/jhuckaby/pixl-server-api)) component provides a JSON REST API for your application.  It sits on top of (and relies on) the WebServer ([pixl-server-web](https://www.github.com/jhuckaby/pixl-server-web)) component.
 
-For more details, check it out on npm: [pixl-server-api](https://www.npmjs.com/package/pixl-server-api)
+For more details, check it out on npm: [pixl-server-api](https://www.github.com/jhuckaby/pixl-server-api)
 
 ### UserManager (pixl-server-user)
 
-The UserManager ([pixl-server-user](https://www.npmjs.com/package/pixl-server-user)) component provides a full user login and user / session management system for your application.  Users can create accounts, login, update information, and logout.  It relies on the API ([pixl-server-api](https://www.npmjs.com/package/pixl-server-api)) component, as well as the Storage ([pixl-server-storage](https://www.npmjs.com/package/pixl-server-storage)) component.
+The UserManager ([pixl-server-user](https://www.github.com/jhuckaby/pixl-server-user)) component provides a full user login and user / session management system for your application.  Users can create accounts, login, update information, and logout.  It relies on the API ([pixl-server-api](https://www.github.com/jhuckaby/pixl-server-api)) component, as well as the Storage ([pixl-server-storage](https://www.github.com/jhuckaby/pixl-server-storage)) component.
 
-For more details, check it out on npm: [pixl-server-user](https://www.npmjs.com/package/pixl-server-user)
+For more details, check it out on npm: [pixl-server-user](https://www.github.com/jhuckaby/pixl-server-user)
 
 ### Storage (pixl-server-storage)
 
-The Storage ([pixl-server-storage](https://www.npmjs.com/package/pixl-server-storage)) component provides an internal API for other components to store data on disk (or to the cloud).  It supports local disk storage, as well as Amazon S3.  One of its unique features is a high performance, double-ended linked list, built on top of a key/value store.  This is useful for web apps to store infinitely-sized lists of data.
+The Storage ([pixl-server-storage](https://www.github.com/jhuckaby/pixl-server-storage)) component provides an internal API for other components to store data on disk (or to the cloud).  It supports local disk storage, as well as Amazon S3.  One of its unique features is a high performance, double-ended linked list, built on top of a key/value store.  This is useful for web apps to store infinitely-sized lists of data.
 
-For more details, check it out on npm: [pixl-server-storage](https://www.npmjs.com/package/pixl-server-storage)
+For more details, check it out on npm: [pixl-server-storage](https://www.github.com/jhuckaby/pixl-server-storage)
 
 ### MultiServer (pixl-server-multi)
 
-The MultiServer ([pixl-server-multi](https://www.npmjs.com/package/pixl-server-multi)) component automatically manages a cluster of servers on the same network.  They auto-detect each other using UDP broadcast packets.  One server is flagged as the "master" node at all times, while the rest are "slaves".  If the master server goes down, one of the slaves will automatically take over.  An API is provided to get the list of server hostnames in the cluster, and it also emits events so your code can react to becoming master, etc.
+The MultiServer ([pixl-server-multi](https://www.github.com/jhuckaby/pixl-server-multi)) component automatically manages a cluster of servers on the same network.  They auto-detect each other using UDP broadcast packets.  One server is flagged as the "master" node at all times, while the rest are "slaves".  If the master server goes down, one of the slaves will automatically take over.  An API is provided to get the list of server hostnames in the cluster, and it also emits events so your code can react to becoming master, etc.
 
-For more details, check it out on npm: [pixl-server-multi](https://www.npmjs.com/package/pixl-server-multi)
+For more details, check it out on npm: [pixl-server-multi](https://www.github.com/jhuckaby/pixl-server-multi)
 
 # Events
 
@@ -156,7 +156,7 @@ The `shutdown` event is fired when the server and all components have shutdown, 
 
 ## Maintenance Events
 
-These events are emitted periodically, and can be used to schedule time-based events such as hourly log rotation, daily storage cleanup, etc.  Unless otherwise noted, your callback will be passed an object representing the current local date and time, as returned from [getDateArgs()](https://www.npmjs.com/package/pixl-tools#getdateargs).
+These events are emitted periodically, and can be used to schedule time-based events such as hourly log rotation, daily storage cleanup, etc.  Unless otherwise noted, your callback will be passed an object representing the current local date and time, as returned from [getDateArgs()](https://www.github.com/jhuckaby/pixl-tools#getdateargs).
 
 ### tick
 
@@ -166,7 +166,7 @@ This event is fired approximately once every second, but is not guaranteed to be
 
 This event is fired every minute, on the minute.  Example:
 
-```javascript
+```js
 server.on('minute', function(args) {
 	// Do something every minute
 });
@@ -176,7 +176,7 @@ server.on('minute', function(args) {
 
 Also fired every minute, this event name will contain the actual minute number (two-digit padded from `00` to `59`), so you can schedule hourly jobs that run at a particular minute.  Don't forget the colon (:) prefix.  Example:
 
-```javascript
+```js
 server.on(':15', function(args) {
 	// This will run on the :15 of the hour, every hour
 });
@@ -186,7 +186,7 @@ server.on(':15', function(args) {
 
 Also fired every minute, this event name will contain both the hour digits (from `00` to `23`) and the minute (from `00` to `59`), so you can schedule daily jobs that run at a particular time.  Example:
 
-```javascript
+```js
 server.on('04:30', function(args) {
 	// This will run once at 4:30 AM, every day
 });
@@ -196,7 +196,7 @@ server.on('04:30', function(args) {
 
 This event is fired every hour, on the hour.  Example:
 
-```javascript
+```js
 server.on('hour', function(args) {
 	// Do something every hour
 });
@@ -206,7 +206,7 @@ server.on('hour', function(args) {
 
 This event is fired every day at midnight.  Example:
 
-```javascript
+```js
 server.on('day', function(args) {
 	// Do something every day at midnight
 });
@@ -216,7 +216,7 @@ server.on('day', function(args) {
 
 This event is fired at midnight when the month changes.  Example:
 
-```javascript
+```js
 server.on('month', function(args) {
 	// Do something every month
 });
@@ -226,7 +226,7 @@ server.on('month', function(args) {
 
 This event is fired at midnight when the year changes.  Example:
 
-```javascript
+```js
 server.on('year', function(args) {
 	// Do something every year
 });
@@ -236,10 +236,10 @@ server.on('year', function(args) {
 
 The server configuration consists of a set of global, top-level keys, and then each component has its own sub-section keyed by its name.  The configuration can be specified as an inline JSON object to the constructor in the `config` property like this:
 
-```javascript
+```json
 {
-	config: {
-		"log_dir": "/var/log",
+	"config": {
+		"log_dir": "/let/log",
 		"debug_level": 9,
 		"uid": "www"
 	}
@@ -248,9 +248,9 @@ The server configuration consists of a set of global, top-level keys, and then e
 
 Or it can be saved in JSON file, and specified using the `configFile` property like this:
 
-```javascript
+```json
 {
-	configFile: "conf/config.json"
+	"configFile": "conf/config.json"
 }
 ```
 
@@ -276,16 +276,16 @@ Here are the global configuration keys:
 
 Remember that each component should have its own configuration key.  Here is an example server configuration, including the `WebServer` component:
 
-```javascript
+```json
 {
-	config: {
-		"log_dir": "/var/log",
+	"config": {
+		"log_dir": "/let/log",
 		"debug_level": 9,
 		"uid": "www",
 		
 		"WebServer": {
 			"http_port": 80,
-			"http_htdocs_dir": "/var/www/html"
+			"http_htdocs_dir": "/let/www/html"
 		}
 	}
 }
@@ -297,13 +297,13 @@ Consult the documentation for each component you use to see which keys they requ
 
 You can specify command-line arguments when launching your server.  If these are in the form of `--key value` they will override any global configuration keys with matching names.  For example, you can launch your server in debug mode and enable log echo like this:
 
-```
+```sh
 node my-script.js --debug 1 --echo 1
 ```
 
 Actually, you can set a configuration key to boolean `true` simply by including it without a value, so this works too:
 
-```
+```sh
 node my-script.js --debug --echo
 ```
 
@@ -311,7 +311,7 @@ node my-script.js --debug --echo
 
 If you want to limit the log echo to certain log categories or components, you can specify them on the command-line, like this:
 
-```
+```sh
 node my-script.js --debug 1 --echo "debug error"
 ```
 
@@ -345,12 +345,12 @@ So for example, let's say you had one main configuration file which you want loa
 So in the above example the `config.json` file would be loaded and parsed as if it were the main configuration file (since it has no `key` property), and its contents merged into the top-level server configuration.  Then the `/etc/env.json` file would also be parsed, and its contents made available in the `env` configuration key.  So you could access it via:
 
 ```js
-var env = server.config.get('env');
+let env = server.config.get('env');
 ```
 
 Both files would be monitored for changes (polled every 10 seconds by default) and hot-reloaded as necessary.  If any file is reloaded, a `reload` event is emitted on the main `server.config` object, so you can listen for this and perform any app-specific operations as needed.
 
-For another example, let's say your environment-specific file is actually in [XML](https://en.wikipedia.org/wiki/XML) format.  For this, you need to specify a custom parser function via the `parser` property.  If you use our own [pixl-xml](https://www.npmjs.com/package/pixl-xml) module, the usage is as follows:
+For another example, let's say your environment-specific file is actually in [XML](https://en.wikipedia.org/wiki/XML) format.  For this, you need to specify a custom parser function via the `parser` property.  If you use our own [pixl-xml](https://www.github.com/jhuckaby/pixl-xml) module, the usage is as follows:
 
 ```js
 "multiConfig": [
@@ -377,7 +377,7 @@ Your `parser` function is passed a single argument, which is the file contents p
 		"key": "env",
 		"parser": function(text) {
 			// parse simple INI `key=value` format
-			var config = {};
+			let config = {};
 			text.split(/\n/).forEach( function(line) {
 				if (line.trim().match(/^(\w+)\=(.+)/)) { 
 					config[ RegExp.$1 ] = RegExp.$2; 
@@ -411,7 +411,7 @@ You can also combine an inline `config` object, and the `multiConfig` object, in
 ```js
 {
 	"config": {
-		"log_dir": "/var/log",
+		"log_dir": "/let/log",
 		"log_filename": "myapp.log",
 		"debug_level": 9
 	},
@@ -429,7 +429,7 @@ You can also combine an inline `config` object, and the `multiConfig` object, in
 
 If you need to temporarily swap out your `multiConfig` file paths for testing, you can do so on the command-line.  Simply specify one or more `--multiConfig` CLI arguments, each one pointing to a replacement file.  The files must be specified in order of the items in your `multiConfig` array.  Example:
 
-```
+```sh
 node myserver.js --multiConfig test/config.json --multiConfig test/env.json
 ```
 
@@ -437,9 +437,9 @@ node myserver.js --multiConfig test/config.json --multiConfig test/env.json
 
 # Logging
 
-The server keeps an event log using the [pixl-logger](https://www.npmjs.com/package/pixl-logger) module.  This is a combination of a debug log, error log and transaction log, with a `category` column denoting the type of log entry.  By default, the log columns are defined as:
+The server keeps an event log using the [pixl-logger](https://www.github.com/jhuckaby/pixl-logger) module.  This is a combination of a debug log, error log and transaction log, with a `category` column denoting the type of log entry.  By default, the log columns are defined as:
 
-```javascript
+```js
 ['hires_epoch', 'date', 'hostname', 'component', 'category', 'code', 'msg', 'data']
 ```
 
@@ -458,7 +458,7 @@ Here is an example debug log snippet:
 
 For debug log entries, the `category` column is set to `debug`, and the `code` columns is used as the debug level.  The server object (and your component object) has methods for logging debug messages, errors and transactions:
 
-```javascript
+```js
 server.logDebug( 9, "This would be logged at level 9 or higher." );
 server.logError( 1005, "Error message for code 1005 here." );
 server.logTransaction( 99.99, "Description of transaction here." );
@@ -468,9 +468,9 @@ These three methods all accept two required arguments, and an optional 3rd "data
 
 When you call `logDebug()`, `logError()` or `logTransaction()` on your component object, the `component` column will be set to the component name.  Otherwise, it will be blank (including when the server logs its own debug messages).
 
-If you need low-level, direct access to the [pixl-logger](https://www.npmjs.com/package/pixl-logger) object, you can call it by accessing the `logger` property of the server object or your component class.  Example:
+If you need low-level, direct access to the [pixl-logger](https://www.github.com/jhuckaby/pixl-logger) object, you can call it by accessing the `logger` property of the server object or your component class.  Example:
 
-```javascript
+```js
 server.logger.print({ 
 	category: 'custom', 
 	code: 'custom code', 
@@ -483,55 +483,51 @@ The server and component classes have a utility method named `debugLevel()`, whi
 
 # Component Development
 
-To develop your own component, create a class that inherits from the `pixl-server/component` base class.  It is recommended you use the [pixl-class](https://www.npmjs.com/package/pixl-class) module for this.  Set your `__name` property to a unique, alphanumeric name, which will be your Component ID.  This is how other components can reference yours from the `server` object, and this is the key used for your component's configuration as well.
+To develop your own component, create a class that inherits from the `pixl-server/component` base class.  Your class name will be your Component ID.  This is how other components can reference yours from the `server` object, and this is the key used for your component's configuration as well.
 
 Here is a simple component example:
 
-```javascript
-var Class = require("pixl-class");
-var Component = require("pixl-server/component");
+```js
+const Component = require("pixl-server/component");
 
-module.exports = Class.create({
+module.exports = class MyComponent extends Component {
 	
-	__name: 'MyComponent',
-	__parent: Component,
-	
-	startup: function(callback) {
+	startup(callback) {
 		this.logDebug(1, "My component is starting up!");
 		callback();
 	},
 	
-	shutdown: function(callback) {
+	shutdown(callback) {
 		this.logDebug(1, "My component is shutting down!");
 		callback();
 	}
 	
-});
+};
 ```
 
 Now, assuming you saved this class as `my_component.js`, you would load it in a server by adding it to the `components` array like this:
 
-```javascript
+```js
 components: [
 	require('pixl-server-web'),
 	require('./my_component.js')
 ]
 ```
 
-This would load the [pixl-server-web](https://www.npmjs.com/package/pixl-server-web) component first, followed by your `my_component.js` component after it.  Remember that the load order is important, if you have a component that relies on another.
+This would load the [pixl-server-web](https://www.github.com/jhuckaby/pixl-server-web) component first, followed by your `my_component.js` component after it.  Remember that the load order is important, if you have a component that relies on another.
 
-Your component's configuration would be keyed off the value in your `__name` property, like this:
+Your component's configuration would be keyed off the class name, like this:
 
-```javascript
+```js
 {
 	config: {
-		"log_dir": "/var/log",
+		"log_dir": "/let/log",
 		"debug_level": 9,
 		"uid": "www",
 		
 		"WebServer": {
 			"http_port": 80,
-			"http_htdocs_dir": "/var/www/html"
+			"http_htdocs_dir": "/let/www/html"
 		},
 		
 		"MyComponent": {
@@ -544,30 +540,30 @@ Your component's configuration would be keyed off the value in your `__name` pro
 
 If you want to specify default configuration keys (in case they are missing from the server configuration for your component), you can define a `defaultConfig` property in your class, like this:
 
-```javascript
-module.exports = Class.create({
-	__name: 'MyComponent',
-	__parent: Component,
+```js
+module.exports = class MyComponent extends Component {
 	
-	defaultConfig: {
+	defaultConfig = {
 		"key1": "Default Value 1",
 		"key2": "Default Value 2"
 	}
-});
+	
+	...
+};
 ```
 
 ## Startup and Shutdown
 
 Your component should at least provide `startup()` and `shutdown()` methods.  These are both async methods, which should invoke the provided callback function when they are complete.  Example:
 
-```javascript
+```js
 {
-	startup: function(callback) {
+	startup(callback) {
 		this.logDebug(1, "My component is starting up!");
 		callback();
 	},
 	
-	shutdown: function(callback) {
+	shutdown(callback) {
 		this.logDebug(1, "My component is shutting down!");
 		callback();
 	}
@@ -578,16 +574,16 @@ As with all Node.js callbacks, if something goes wrong and you want to abort the
 
 ## Accessing Your Configuration
 
-Your configuration object is always accessible via `this.config`.  Note that this is an instance of [pixl-config](https://www.npmjs.com/package/pixl-config), so you need to call `get()` on it to fetch individual configuration keys, or you can fetch the entire object by calling it without an argument:
+Your configuration object is always accessible via `this.config`.  Note that this is an instance of [pixl-config](https://www.github.com/jhuckaby/pixl-config), so you need to call `get()` on it to fetch individual configuration keys, or you can fetch the entire object by calling it without an argument:
 
-```javascript
+```js
 {
-	startup: function(callback) {
+	startup(callback) {
 		this.logDebug(1, "My component is starting up!");
 		
 		// access our component configuration
-		var key1 = this.config.get('key1');
-		var entire_config = this.config.get();
+		let key1 = this.config.get('key1');
+		let entire_config = this.config.get();
 		
 		callback();
 	}
@@ -600,13 +596,13 @@ If the server configuration is live-reloaded due to a changed file, your compone
 
 Your component can always access the root server object via `this.server`.  Example:
 
-```javascript
+```js
 {
-	startup: function(callback) {
+	startup(callback) {
 		this.logDebug(1, "My component is starting up!");
 		
 		// access the main server configuration
-		var server_uid = this.server.config.get('uid');
+		let server_uid = this.server.config.get('uid');
 		
 		callback();
 	}
@@ -617,9 +613,9 @@ Your component can always access the root server object via `this.server`.  Exam
 
 Other components are accessible via `this.server.COMPONENT_NAME`.  Please be aware of the component load order, as components listed below yours in the server `components` array won't be fully loaded when your `startup()` method is called.  Example:
 
-```javascript
+```js
 {
-	startup: function(callback) {
+	startup(callback) {
 		this.logDebug(1, "My component is starting up!");
 		
 		// access the WebServer component
@@ -641,15 +637,15 @@ Other components are accessible via `this.server.COMPONENT_NAME`.  Please be awa
 
 Your component's base class has convenience methods for logging debug messages, errors and transactions via the `logDebug()`, `logError()` and `logTransaction()` methods, respectively.  These log messages will all be tagged with your component name, to differentiate them from other components and generic server messages.  Example:
 
-```javascript
+```js
 this.logDebug( 9, "This would be logged at level 9 or higher." );
 this.logError( 1005, "Error message for code 1005 here." );
 this.logTransaction( 99.99, "Description of transaction here." );
 ```
 
-If you need low-level, direct access to the [pixl-logger](https://www.npmjs.com/package/pixl-logger) object, you can call it by accessing the `logger` property of your component class.  Example:
+If you need low-level, direct access to the [pixl-logger](https://www.github.com/jhuckaby/pixl-logger) object, you can call it by accessing the `logger` property of your component class.  Example:
 
-```javascript
+```js
 this.logger.print({ 
 	category: 'custom', 
 	code: 'custom code', 
@@ -660,9 +656,9 @@ this.logger.print({
 
 # Uncaught Exceptions
 
-When the `log_crashes` feature is enabled, the [uncatch](https://www.npmjs.com/package/uncatch) module is used to manage uncaught exceptions.  The server registers a listener to log crashes, but you can also add your own listener to perform emergency shutdown procedures in the event of a crash (uncaught exception).
+When the `log_crashes` feature is enabled, the [uncatch](https://www.github.com/jhuckaby/uncatch) module is used to manage uncaught exceptions.  The server registers a listener to log crashes, but you can also add your own listener to perform emergency shutdown procedures in the event of a crash (uncaught exception).
 
-The idea with [uncatch](https://www.npmjs.com/package/uncatch) is that multiple modules can all register listeners, and that includes your application code.  Example:
+The idea with [uncatch](https://www.github.com/jhuckaby/uncatch) is that multiple modules can all register listeners, and that includes your application code.  Example:
 
 ```js
 require('uncatch').on('uncaughtException', function(err) {
