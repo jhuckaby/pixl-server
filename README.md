@@ -495,7 +495,7 @@ module.exports = class MyComponent extends Component {
 	startup(callback) {
 		this.logDebug(1, "My component is starting up!");
 		callback();
-	},
+	}
 	
 	shutdown(callback) {
 		this.logDebug(1, "My component is shutting down!");
@@ -561,7 +561,7 @@ Your component should at least provide `startup()` and `shutdown()` methods.  Th
 	startup(callback) {
 		this.logDebug(1, "My component is starting up!");
 		callback();
-	},
+	}
 	
 	shutdown(callback) {
 		this.logDebug(1, "My component is shutting down!");
