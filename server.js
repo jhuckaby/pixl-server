@@ -625,6 +625,7 @@ module.exports = Class.create({
 					if (self.config.get('exit_on_shutdown')) process.exit(0);
 					if (self.sigIntFunc) process.off('SIGINT', self.sigIntFunc);
 					if (self.sigTermFunc) process.off('SIGTERM', self.sigTermFunc);
+					if (self.sigHupFunc) process.off('SIGHUP', self.sigHupFunc);
 				}
 			}
 		); // foreach component
