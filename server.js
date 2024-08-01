@@ -5,6 +5,7 @@
 var Path = require('path');
 var fs = require('fs');
 var os = require('os');
+var cp = require('child_process');
 var async = require('async');
 
 var Class  = require("pixl-class");
@@ -201,10 +202,20 @@ module.exports = Class.create({
 				catch (e) {;}
 				
 				if (ping) {
-					var msg = "FATAL ERROR: Process " + pid + " from " + pid_file + " is still alive and running.  Aborting startup.";
-					this.logger.set('sync', true);
-					this.logDebug(1, msg);
-					process.exit(1);
+					// make sure process is really ours
+					var ps_raw = "";
+					try { ps_raw = cp.execSync('ps -p ' + pid + ' -o args=', { timeout: 5000, encoding: 'utf8' }); }
+					catch (e) {;}
+					
+					if (ps_raw.match(this.__name)) {
+						var msg = "FATAL ERROR: Process " + pid + " from " + pid_file + " is still alive and running.  Aborting startup.";
+						this.logger.set('sync', true);
+						this.logDebug(1, msg);
+						process.exit(1);
+					}
+					else {
+						this.logDebug(2, "Old process " + pid + " is in use but is not ours, so the PID file will be replaced: " + pid_file);
+					}
 				}
 				else {
 					this.logDebug(2, "Old process " + pid + " is apparently dead, so the PID file will be replaced: " + pid_file);
