@@ -481,6 +481,34 @@ server.logger.print({
 
 The server and component classes have a utility method named `debugLevel()`, which accepts a log level integer, and will return `true` if the current debug log level is high enough to emit something at the specified level, or `false` if it would be silenced.
 
+## Log Filtering
+
+You can specify criteria for which column values are logged in your app's configuration, using a top-level property called `log_filters`.  Here is how it works:
+
+```json
+"log_filters": {
+	"category": {
+		"error": true
+	}
+}
+```
+
+In the above example the app would *only* log errors, and nothing else (no debug, no transaction, etc.).  It essentially specifies which values of the `category` column are allowed to be logged.  Any column key can be specified here, and you may include multiple column rulesets.  But if any of them don't match, the entire line will not be logged.
+
+You can alternately specify a wildcard key (`*`) in a ruleset and set it to `true`, which means log *any* value, but then you can *disable* specific column values.  Here is an example:
+
+```json
+"log_filters": {
+	"component": {
+		"*": true,
+		"Storage": false,
+		"WebServer": false
+	}
+}
+```
+
+This would log everything from all components (`*`), *except* the `Storage` or `WebServer` components.
+
 # Component Development
 
 To develop your own component, create a class that inherits from the `pixl-server/component` base class.  Your class name will be your Component ID.  This is how other components can reference yours from the `server` object, and this is the key used for your component's configuration as well.

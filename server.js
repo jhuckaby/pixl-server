@@ -123,6 +123,26 @@ module.exports = Class.create({
 			} );
 		} // echo
 		
+		// optional log filter (conditional logging based on column matches)
+		if (this.config.get('log_filters')) {
+			var log_filters = this.config.get('log_filters');
+			if (Tools.numKeys(log_filters)) this.logger.set( 'serializer', function(cols, args) {
+				var result = true;
+				for (var key in log_filters) {
+					var values = log_filters[key];
+					if (values['*']) {
+						// allow 'everything EXCEPT certain col values
+						if ((args[key] in values) && !values[args[key]]) { result = false; break; }
+					}
+					else {
+						// standard filter logic, only log true matches
+						if (!values[args[key]]) { result = false; break; }
+					}
+				}
+				return result ? ('[' + cols.join('][') + ']' + os.EOL) : false;
+			} );
+		}
+		
 		if (this.debug || this.foreground || process.env.__daemon) {
 			// avoid dupe log entries when forking daemon background process
 			this.logDebug(2, this.__name + " v" + this.__version + " Starting Up", {
