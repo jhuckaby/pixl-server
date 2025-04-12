@@ -92,6 +92,8 @@ module.exports = Class.create({
 		this.color = this.config.get('color') || false;
 		this.logDebugErrors = this.config.get('log_debug_errors') || false;
 		
+		this.emit('init');
+		
 		// create base log dir
 		if (this.config.get('log_dir')) {
 			try {
@@ -112,8 +114,12 @@ module.exports = Class.create({
 		this.logger.set( 'debugLevel', this.config.get('debug_level') || 1 );
 		if (!this.config.get('log_async')) this.logger.set('sync', true);
 		
-		// optional echo categories
-		if (this.echo && (typeof(this.echo) == 'string') && !this.echo.match(/^\d+$/)) {
+		if (this.echo && this.echoer) {
+			// full custom echoer defined in server
+			this.logger.set( 'echoer', function(line, cols, args) { self.echoer(line, cols, args); } );
+		}
+		else if (this.echo && (typeof(this.echo) == 'string') && !this.echo.match(/^\d+$/)) {
+			// optional echo categories
 			var re = new RegExp( '(' + this.echo.replace(/\s+/g, '|') + ')' );
 			this.logger.set( 'echoer', function(line, cols, args) {
 				if ( (''+args.component).match(re) || (''+args.category).match(re) ) {
@@ -255,7 +261,7 @@ module.exports = Class.create({
 			// confirm PID file was actually written
 			try {
 				pid = fs.readFileSync( pid_file, 'utf8' );
-				this.logDebug(9, "Confirmed PID File contents: " + pid_file + ": " + pid);
+				this.logDebug(10, "Confirmed PID File contents: " + pid_file + ": " + pid);
 			}
 			catch (e) {
 				var msg = "FATAL ERROR: PID file could not be read: " + pid_file + ": " + e;
