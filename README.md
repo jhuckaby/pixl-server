@@ -1,3 +1,48 @@
+<details><summary>Table of Contents</summary>
+
+<!-- toc -->
+- [Overview](#overview)
+- [Usage](#usage)
+- [Components](#components)
+	* [Stock Components](#stock-components)
+		+ [WebServer (pixl-server-web)](#webserver-pixl-server-web)
+		+ [PoolManager (pixl-server-pool)](#poolmanager-pixl-server-pool)
+		+ [JSON API (pixl-server-api)](#json-api-pixl-server-api)
+		+ [UserManager (pixl-server-user)](#usermanager-pixl-server-user)
+		+ [Storage (pixl-server-storage)](#storage-pixl-server-storage)
+		+ [MultiServer (pixl-server-multi)](#multiserver-pixl-server-multi)
+- [Events](#events)
+	* [init](#init)
+	* [prestart](#prestart)
+	* [ready](#ready)
+	* [shutdown](#shutdown)
+	* [Maintenance Events](#maintenance-events)
+		+ [tick](#tick)
+		+ [minute](#minute)
+			- [:MM](#mm)
+			- [HH:MM](#hhmm)
+		+ [hour](#hour)
+		+ [day](#day)
+		+ [month](#month)
+		+ [year](#year)
+- [Configuration](#configuration)
+	* [Command-Line Arguments](#command-line-arguments)
+		+ [Optional Echo Categories](#optional-echo-categories)
+	* [Multi-File Configuration](#multi-file-configuration)
+	* [Config Overrides File](#config-overrides-file)
+- [Logging](#logging)
+	* [Log Filtering](#log-filtering)
+- [Component Development](#component-development)
+	* [Startup and Shutdown](#startup-and-shutdown)
+	* [Accessing Your Configuration](#accessing-your-configuration)
+	* [Accessing The Root Server](#accessing-the-root-server)
+	* [Accessing Other Components](#accessing-other-components)
+	* [Accessing The Server Log](#accessing-the-server-log)
+- [Uncaught Exceptions](#uncaught-exceptions)
+- [License](#license)
+
+</details>
+
 # Overview
 
 This module is a generic server daemon framework, which supports a component plug-in system.  It can be used as a basis to create custom daemons such as web app backends.  It provides basic services such as configuration file loading, command-line argument parsing, logging, and more.  Component plug-ins can be created by you, or you can use some pre-made ones.
@@ -142,6 +187,10 @@ For more details, check it out on npm: [pixl-server-multi](https://www.github.co
 
 The following events are emitted by the server.
 
+## init
+
+The `init` event is fired **very early** during initialization.  Only the server configuration is available at this stage.
+
 ## prestart
 
 The `prestart` event is fired during server initialization.  The server's configuration and logging systems are available, and components are initialized but not started.  Your callback is not passed any arguments.
@@ -273,6 +322,7 @@ Here are the global configuration keys:
 | `log_debug_errors` | `false` | Optionally log all debug level 1 events as errors with `fatal` code.  Helps for visibility with log alerting systems. |
 | `stdout` | - | When forking a daemon process, this will redirect the forked process STDOUT stream to the specified file (will be created if necessary). |
 | `stderr` | - | When forking a daemon process, this will redirect the forked process STDERR stream to the specified file (will be created if necessary). |
+| `config_overrides_file` | - | Optionally specify a file containing configuration overrides.  See [Config Overrides File](#config-overrides-file) below. |
 
 Remember that each component should have its own configuration key.  Here is an example server configuration, including the `WebServer` component:
 
@@ -307,15 +357,21 @@ Actually, you can set a configuration key to boolean `true` simply by including 
 node my-script.js --debug --echo
 ```
 
+You can set deep configuration properties nested inside objects by using `dot.path.notation`.  Example:
+
+```sh
+node my-script.js --WebServer.http_bind_address localhost
+```
+
 ### Optional Echo Categories
 
 If you want to limit the log echo to certain log categories or components, you can specify them on the command-line, like this:
 
 ```sh
-node my-script.js --debug 1 --echo "debug error"
+node my-script.js --debug 1 --echo "Debug Error"
 ```
 
-This would limit the log echo to entries that had their `category` or `component` column set to either `debug` or `error`.  Other non-matched entries would still be logged -- they just wouldn't be echoed to the console.
+This would limit the log echo to entries that had their `category` or `component` column set to either `Debug` or `Error`.  Other non-matched entries would still be logged -- they just wouldn't be echoed to the console.
 
 ## Multi-File Configuration
 
@@ -434,6 +490,28 @@ node myserver.js --multiConfig test/config.json --multiConfig test/env.json
 ```
 
 **Note:** The `configFile` and `multiConfig` server properties are mutually exclusive.  If you specify `configFile`  it takes precedence, and disables the multi-config system.
+
+## Config Overrides File
+
+If you specify the `config_overrides_file` configuration property, and point it at a JSON file on disk, it is applied as a set of "overrides" using `dot.path.notation`.  For example:
+
+```json
+{
+	"config_overrides_file": "/etc/my-overrides.json"
+}
+```
+
+If the `/etc/my-overrides.json` file contained the following:
+
+```json
+{
+	"debug_level": "5",
+	"Storage.engine": "S3",
+	"WebServer.http_log_requests": false
+}
+```
+
+Then those overrides would be applied to the configuration.  Note how you can set nested properties too.  This kind of thing is very useful for an environment-specific config override system.
 
 # Logging
 

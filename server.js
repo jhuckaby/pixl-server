@@ -441,8 +441,7 @@ module.exports = Class.create({
 		
 		// this may contain secrets, so only logging it at level 10
 		this.logDebug(10, "Configuration", this.config.get());
-		
-		this.logDebug(2, "Server IP: " + this.ip + ", Daemon PID: " + process.pid);
+		this.logDebug(2, "Server Info:", { hostname: this.hostname, ip: this.ip, daemon: !!process.env.__daemon });
 		
 		// listen for various shutdown signals
 		this.sigIntFunc = function() { 
