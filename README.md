@@ -30,6 +30,7 @@
 		+ [Optional Echo Categories](#optional-echo-categories)
 	* [Multi-File Configuration](#multi-file-configuration)
 	* [Config Overrides File](#config-overrides-file)
+	* [Environment Variables](#environment-variables)
 - [Logging](#logging)
 	* [Log Filtering](#log-filtering)
 - [Component Development](#component-development)
@@ -512,6 +513,24 @@ If the `/etc/my-overrides.json` file contained the following:
 ```
 
 Then those overrides would be applied to the configuration.  Note how you can set nested properties too.  This kind of thing is very useful for an environment-specific config override system.
+
+## Environment Variables
+
+You can set special environment variables that work as configuration overrides.  You can even target nested configuration properties this way.  The format is as follows:
+
+```
+APPNAME_CONFIGPATH
+```
+
+The `APPNAME` is whatever you set in the `__name` property in your pixl-server instance.  It should be all upper-case in the environment variable name.  The `CONFIGPATH` is a "path" to the configuration property to override.  If the property is a top-level, just specify it directly (case-sensitive).  If nested, use **double-underscore** (`__`) to traverse into sub-objects (instead of a period, which isn't allowed in environment variables).  Examples:
+
+```
+MYSERVER_debug_level=5
+MYSERVER_Storage__engine="S3"
+MYSERVER_WebServer__http_log_requests=false
+```
+
+Environment variables are all naturally strings, but pixl-server will "auto-detect" other data types (floats, integers, and booleans) and convert as necessary.
 
 # Logging
 
