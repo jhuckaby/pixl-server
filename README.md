@@ -210,7 +210,9 @@ These events are emitted periodically, and can be used to schedule time-based ev
 
 ### tick
 
-This event is fired approximately once every second, but is not guaranteed to be fired *on* the second.  It is more for things like general heartbeat tasks (check for status of running jobs, etc.).  Your callback is not passed any arguments.
+This event is fired approximately once every second, but is not guaranteed to be fired *on* the second (but we try to be as close as possible).  This is more for things like general heartbeat tasks (check for status of running jobs, etc.).  Your callback is not passed any arguments.
+
+As a convenience, an `*:SS` event is also emitted every tick, where `SS` is the current 2-digit second number, with zero-padding below 10, e.g. `*:00`, `*:01`, `*:02`, etc.
 
 ### minute
 

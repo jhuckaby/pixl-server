@@ -546,12 +546,13 @@ module.exports = Class.create({
 	tick: function() {
 		// run every second, for periodic tasks
 		var self = this;
+		var dargs = Tools.getDateArgs( new Date() );
 		if (this.shut) return;
 		
 		this.emit('tick');
+		this.emit('*:' + dargs.ss, dargs);
 		
 		// also emit minute, hour and day events when they change
-		var dargs = Tools.getDateArgs( new Date() );
 		if (dargs.min != this.lastTickDate.min) {
 			this.emit('minute', dargs);
 			this.emit( dargs.hh + ':' + dargs.mi, dargs );
