@@ -204,7 +204,7 @@ module.exports = Class.create({
 			if (this.config.get('log_crashes')) {
 				require('uncatch').on('uncaughtException', function(err) {
 					fs.appendFileSync( Path.join(self.config.get('log_dir'), self.config.get('crash_filename') || 'crash.log'),
-						(new Date()).toString() + " - " + os.hostname() + " - PID " + process.pid + "\n" + 
+						(new Date()).toString() + " - " + os.hostname() + " - " + self.__name + " v" + self.__version + " - PID " + process.pid + "\n" + 
 						err.stack + "\n\n"
 					);
 					self.logger.set('sync', true);
