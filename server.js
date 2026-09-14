@@ -228,12 +228,18 @@ module.exports = Class.create({
 				catch (e) {;}
 				
 				if (ping) {
-					// make sure process is really ours
-					var ps_raw = "";
-					try { ps_raw = cp.execSync('ps -p ' + pid + ' -o args=', { timeout: 5000, encoding: 'utf8' }); }
-					catch (e) {;}
-					
-					if (ps_raw.match(this.__name)) {
+					// On Windows there is no standard `ps` command available to verify the process name.
+					// In this case we must fail closed, as allowing a second server process to start can
+					// cause far more harm than requiring manual cleanup of a stale PID file.
+					var is_ours = (process.platform == 'win32');
+					if (!is_ours) {
+						// On Unix, make sure the process is really ours, in case the PID was recycled.
+						var ps_raw = "";
+						try { ps_raw = cp.execSync('ps -p ' + pid + ' -o args=', { timeout: 5000, encoding: 'utf8' }); }
+						catch (e) {;}
+						is_ours = !!ps_raw.match(this.__name);
+					}
+					if (is_ours) {
 						var msg = "FATAL ERROR: Process " + pid + " from " + pid_file + " is still alive and running.  Aborting startup.";
 						this.logger.set('sync', true);
 						this.logDebug(1, msg);
