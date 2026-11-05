@@ -405,7 +405,7 @@ module.exports = Class.create({
 				this.logDebug(8, "Loading config overrides file: " + this.coFile);
 				
 				try {
-					this.configOverrides = JSON.parse( fs.readFileSync( this.coFile, 'utf8' ) );
+					this.configOverrides = Tools.sjson.parse( fs.readFileSync( this.coFile, 'utf8' ) );
 				}
 				catch (err) {
 					// checking for `this.logger` because on startup this code runs too early to log anything at all
